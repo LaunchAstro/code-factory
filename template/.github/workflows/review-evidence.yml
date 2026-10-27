@@ -1,0 +1,86 @@
+name: review evidence
+# A review is evidence, and evidence arriving after the checks went green has
+# to be able to turn them red. This workflow is the only thing that reports
+# `review evidence for this revision`, and it runs when a review lands,
+# submitted or edited or dismissed, so every review is read again each time.
+# The strictest verdict on the head decides, not the latest, as
+# CONTRIBUTING.md says.
+# Sol's review of 1e90365 found that without it a changes-requested verdict
+# posted after a green run left the green run standing at merge time.
+#
+# Ticket 1 cut the copy of this job that `ci.yml` ran at push time: on a head
+# nobody had reviewed yet it went red for want of a review, and that stale red
+# run then blocked the merge after the review landed green. A case in
+# tests/ci/review-evidence-cases.sh refuses a `ci.yml` that reports the context
+# again, and `.github/required-contexts.json` records that the context is
+# required, so a job renamed out from under the requirement fails there.
+
+on:
+  pull_request_review:
+    types: [submitted, edited, dismissed]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review-evidence:
+    name: review evidence for this revision
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # The reviews are the evidence this job reads. Reading them is all it does
+    # with the token, and the workflow's default stays read-only.
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      # The head the review covered, explicitly, because this job also runs on
+      # a review arriving, where the default checkout would be the base branch.
+      # No token is left in .git/config for the install and the cases.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      # The verdict lives in the review, not in the body. GitHub records every
+      # review from the author's own account as COMMENTED, so the state says
+      # nothing and the body says everything; the check reads the body. The
+      # fetch runs just before the checker, alone, so nothing else writes the
+      # file it reads.
+      - name: The reviews of record on this pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          gh api "repos/$REPO/pulls/$PR_NUMBER/reviews" --paginate --slurp > reviews.json
+      # The head and the reviews, and nothing from the body: ticket 52 cut the
+      # three rules that read English the builder typed.
+      - name: The review must cover the head being merged
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          REVIEWS_FILE: reviews.json
+        run: node scripts/review-evidence-check.mjs
+      # It runs the pull request's code, so it comes after the one step that
+      # holds the job token; it only reports, so it reports on a red run too.
+      - name: Which files made a security review necessary
+        if: ${{ !cancelled() }}
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: node scripts/sensitive-surface.mjs
+      # The cases parse this workflow with `yaml`, which a fresh checkout does
+      # not have; Sol's review of 7790dc6 found the context red for want of it.
+      # Installed after the checker, as ci.yml installs, so no dependency runs
+      # before the verdict is read.
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: The checker's own cases
+        run: bash tests/ci/review-evidence-cases.sh

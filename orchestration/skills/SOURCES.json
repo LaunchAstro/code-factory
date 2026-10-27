@@ -1,0 +1,95 @@
+{
+  "comment": "Skills this kit uses, by reference. fetch.mjs populates orchestration/skills/<name>/ from these pins; the fetched directories are git-ignored. sha256 is of the skill's SKILL.md at the pinned commit. The owner's real pins name a private repository and stay private; the pins below are examples to replace with your own.",
+  "skills": [
+    {
+      "name": "orchestrator",
+      "repository": "your-org/your-skills",
+      "path": "skills/orchestrator",
+      "commit": "1111111111111111111111111111111111111111",
+      "sha256": "94b2f6bb0f1f2737084bdadbb194aac38e525925068b4c8bd907c2ad835c690c"
+    },
+    {
+      "name": "code-factory",
+      "repository": "your-org/your-skills",
+      "path": "skills/code-factory",
+      "commit": "8888888888888888888888888888888888888888",
+      "sha256": "a29d1d01892456bc865d2d16f74eb97552f051391d9f2b8eacc0eaff067056d9"
+    },
+    {
+      "name": "afk-orchestrator",
+      "repository": "your-org/your-skills",
+      "path": "skills/afk-orchestrator",
+      "commit": "2222222222222222222222222222222222222222",
+      "sha256": "9dc6b8067285fb521774ef6c6f2abce82eb66eb821acc6173582cfe706066081"
+    },
+    {
+      "name": "herdr",
+      "repository": "your-org/your-skills",
+      "path": "skills/herdr",
+      "commit": "3333333333333333333333333333333333333333",
+      "sha256": "84fe0e17f4338636b64be84bc798b95c7c26be9343bb64ee05b1386abeb44ff6"
+    },
+    {
+      "name": "claude-subscription-switch",
+      "repository": "your-org/your-skills",
+      "path": "skills/claude-subscription-switch",
+      "commit": "4444444444444444444444444444444444444444",
+      "sha256": "a4db6314fc059b4c68c1009928f64ab5b6ab4c32d4f6aa7dd66476a7fa510210"
+    },
+    {
+      "name": "claude-parallel-accounts",
+      "repository": "your-org/your-skills",
+      "path": "skills/claude-parallel-accounts",
+      "commit": "5555555555555555555555555555555555555555",
+      "sha256": "f17821d616814eaee51e4459077363ec600f7be4187d8f0abe419b922d5aa09d"
+    },
+    {
+      "name": "wrap-up",
+      "repository": "your-org/your-skills",
+      "path": "skills/wrap-up",
+      "commit": "6666666666666666666666666666666666666666",
+      "sha256": "dd3da420d0a1a3ffdd87bca5d0318946712901fa633f7e3db7895c85a31d024c"
+    },
+    {
+      "name": "close-out",
+      "repository": "your-org/your-skills",
+      "path": "skills/close-out",
+      "commit": "7777777777777777777777777777777777777777",
+      "sha256": "2798a2e6c6015f5d020e3e54aefdb6cae446b6eab20c88a2b28de80e94dd65ee"
+    }
+  ],
+  "prerequisites": [
+    {
+      "name": "Matt Pocock's engineering skills",
+      "repository": "mattpocock/skills",
+      "skills": [
+        "wayfinder",
+        "code-review",
+        "to-spec",
+        "to-tickets",
+        "triage",
+        "setup-matt-pocock-skills"
+      ],
+      "install": [
+        "claude plugin marketplace add mattpocock/skills",
+        "claude plugin install mattpocock-skills@mattpocock"
+      ]
+    },
+    {
+      "name": "pstack plugin",
+      "repository": "ericlitman/open-pstack",
+      "skills": [
+        "unslop",
+        "deslop",
+        "thermo-nuclear-code-quality-review",
+        "principle-laziness-protocol",
+        "principle-minimize-reader-load",
+        "principle-subtract-before-you-add"
+      ],
+      "install": [
+        "claude plugin marketplace add ericlitman/open-pstack",
+        "claude plugin install pstack@open-pstack"
+      ]
+    }
+  ]
+}

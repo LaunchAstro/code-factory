@@ -1,0 +1,11 @@
+node_modules/
+.worktrees/
+.local/
+.DS_Store
+
+# Skills are fetched by orchestration/skills/fetch.mjs, never committed.
+orchestration/skills/*/
+# factory.sh's config; the first path is where a clone set up before the
+# first kit moved under orchestration/archive/ still keeps its copy.
+orchestration/factory.json
+orchestration/archive/factory.json

@@ -1,0 +1,34 @@
+You are the review of record for pull request 11 in <OWNER>/<REPO>, at head 2b8af59.
+
+Your checkout of that head is <CLONE>/.worktrees/REVIEW-11. Work there. Its dependencies are installed.
+
+Read the plan's acceptance criteria at tests/acceptance/10-label-trigger/plan.md and the diff from `gh pr diff 11 --repo <OWNER>/<REPO>`. Read nothing else about the change: no pull request body narrative, no lane brief, no transcript.
+
+This is the first head to be reviewed. Two commits: the plan, then the code. Your job is to refute the claim that the change is complete, not to confirm it. For each of the nine acceptance criteria in plan.md, try to find the case where it does not hold.
+
+Four things are worth attacking specifically, because they are where a change like this goes wrong.
+
+First, whether the split is safe. `pull request size` is a required context in `.github/required-contexts.json` and it is now reported by a workflow of its own rather than by `ci.yml`. Decide what happens to that context on an event `pr-size.yml` does not subscribe to but `ci.yml` does, on a merge queue or a re-opened pull request, and whether a pull request can reach a green rollup with no size result on the head being merged. `ci.yml` said "nothing runs before the gate" and made every job need it; the size job no longer needs it. Decide whether that matters and say so plainly either way.
+
+Second, criterion 4 and the claim under it, which is the load-bearing claim of the whole change: that a job a condition skips still reports its context, and that a skipped required check is not a red one. Check that claim against GitHub's documented behaviour rather than taking the plan's word for it. If it is false, or true only in some configurations, the change is built on sand and that is a finding.
+
+Third, the acceptance test's own readers. `pullRequestTypes` and `jobsIn` parse YAML with regular expressions, which this repository has been burned by before. Write mutations into copies of the tree and confirm the test goes red where it should: put `labeled` back into `ci.yml`'s types on a continuation line or in a block sequence rather than a flow list, rename the `pull request size` job while leaving its key, add a second job reporting the same context, give `pr-size.yml`'s job an `if:` on the label name written as a folded block scalar, and take the `types:` line out of `pr-size.yml` altogether. A case that passes for the wrong reason is a finding.
+
+Fourth, `scripts/pr-size.mjs`. It now parses `--base` and `--head` off `process.argv`. Try to break it: a flag with no value after it, the flag given twice, a value beginning with a dash, `--base` given while `BASE_SHA` is also set, and a ref that resolves to a tag or a tree rather than a commit. Check criterion 7 by running the real cases, and check that the environment path in criterion 8 measures exactly what it measured before this change.
+
+Run `corepack pnpm vitest run tests/acceptance/10-label-trigger/`, `bash tests/ci/pr-size-cases.sh`, `node scripts/pins-check.mjs`, `node scripts/merge-policy-check.mjs`, `JOB_TIMEOUT_STRICT=1 node scripts/job-timeout-check.mjs` and `corepack pnpm check`. Also check that the plan's own tests were genuinely red before the code: you may check out cf9141e into a throwaway worktree and run the plan's tests there against that tree.
+
+The diff also edits `tests/acceptance/1-evidence-on-review/evidence-on-review.test.ts`, which belongs to an earlier ticket. Judge whether that edit weakens ticket 1's criterion or follows it.
+
+Post exactly one review with `gh pr review 11 --repo <OWNER>/<REPO> --comment --body "<body>"`. The body begins with these four lines, each stated once:
+
+Reviewer: Opus (Claude)
+Model: claude-opus-5
+Head SHA: 2b8af59
+Verdict: approve
+
+or `Verdict: changes requested`. Then your findings as `file:line`, one sentence each, or `No findings`.
+
+You may refuse only by naming the acceptance criterion in plan.md that the code breaks. If your verdict is `changes requested`, the body must carry a line of its own reading `Criterion: <n>` with the number of that criterion. Anything you find that no criterion covers is a note: write it under a `Notes:` heading and approve. A refusal with no criterion is not a review of record and will be read as one.
+
+Fix nothing in the repository. Post the review and stop.

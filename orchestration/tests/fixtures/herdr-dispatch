@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: AGPL-3.0-only
+# A stand-in for the dispatch skill's herdr-dispatch, for machines that do not
+# have it installed. It keeps the part of that tool's contract the hand-off
+# proofs exercise, with the same arguments, messages and exit codes:
+#
+#   herdr-dispatch <spec.json>
+#   - 2 when the spec file is missing or its prompt is empty; 3 outside a herdr
+#     pane (HERDR_ENV != 1); 4 when herdr or python3 is not on PATH.
+#   - Reads task, slug, backend, agent, cwd and prompt from the spec. The
+#     prompt survives byte for byte, trailing newlines included.
+#   - Writes the prompt to prompt.txt in a private temporary folder and queues
+#     one `herdr pane run` command in a new tab. That command reads the file,
+#     then removes the folder. The folder belongs to the queued pane once the
+#     command is queued, so this script never deletes it after that point.
+#     Removing it on exit was the PR 183 defect that sol-pr183-delivery-proof.py
+#     catches.
+#   - Focuses the tab and prints the result as JSON with status "launched".
+#
+# It refuses what it does not reproduce (--dry-run, wait, apply_preprompt, a
+# codex agent) with exit 2, so a proof can never pass on a path this file
+# skips.
+set -euo pipefail
+
+SPEC="${1:-}"
+if [[ "$SPEC" == --dry-run ]]; then
+  echo "herdr-dispatch (fixture): --dry-run is not reproduced here." >&2
+  exit 2
+fi
+if [[ -z "$SPEC" || ! -f "$SPEC" ]]; then
+  echo "herdr-dispatch: spec file not found. Usage: herdr-dispatch [--dry-run] <spec.json>" >&2
+  exit 2
+fi
+if [[ "${HERDR_ENV:-}" != "1" ]]; then
+  echo "herdr-dispatch: not inside a herdr pane (HERDR_ENV != 1). Aborting." >&2
+  exit 3
+fi
+command -v herdr >/dev/null || { echo "herdr-dispatch: herdr not on PATH." >&2; exit 4; }
+command -v python3 >/dev/null || { echo "herdr-dispatch: python3 required." >&2; exit 4; }
+
+read_field() { python3 -c "import json,sys; d=json.load(open(sys.argv[1])); sys.stdout.write(str(d.get(sys.argv[2], sys.argv[3])))" "$SPEC" "$1" "${2:-}"; }
+
+TASK="$(read_field task '')"
+SLUG="$(read_field slug '')"
+BACKEND="$(read_field backend claude)"
+AGENT="$(read_field agent '')"
+CWD="$(read_field cwd "$HOME")"
+PROMPT="$(read_field prompt '' && printf .)"
+PROMPT=${PROMPT%.}
+[[ -z "$SLUG" ]] && SLUG="task"
+if [[ -z "$PROMPT" ]]; then
+  echo "herdr-dispatch: spec needs a non-empty 'prompt'." >&2
+  exit 2
+fi
+if [[ "$(read_field wait false)" != False && "$(read_field wait false)" != false ]] ||
+  [[ "$(read_field apply_preprompt false)" != False && "$(read_field apply_preprompt false)" != false ]]; then
+  echo "herdr-dispatch (fixture): wait and apply_preprompt are not reproduced here." >&2
+  exit 2
+fi
+if [[ -z "$AGENT" ]]; then
+  case "$BACKEND" in
+    claude | anthropic) AGENT="claude --dangerously-skip-permissions" ;;
+    *) echo "herdr-dispatch (fixture): only the claude backend is reproduced here." >&2; exit 2 ;;
+  esac
+fi
+[[ "$AGENT" == codex* ]] && { echo "herdr-dispatch (fixture): a codex agent is not reproduced here." >&2; exit 2; }
+mkdir -p "$CWD"
+
+TMP="$(mktemp -d "${TMPDIR:-/tmp}/herdr-dispatch.XXXXXX")"
+PROMPT_TRANSFERRED=0
+trap '[ "$PROMPT_TRANSFERRED" = 1 ] || rm -rf "$TMP"' EXIT
+PROMPTFILE="$TMP/prompt.txt"
+printf '%s' "$PROMPT" >"$PROMPTFILE"
+
+CUR_WS="$(herdr pane list | python3 -c 'import sys,json
+d=json.load(sys.stdin)
+print(d.get("workspace_id", 1) if isinstance(d, dict) else 1)')"
+[[ -n "${HERDR_WORKSPACE_ID:-}" ]] && CUR_WS="$HERDR_WORKSPACE_ID"
+
+TAB_INFO="$(herdr tab create --workspace "$CUR_WS" --label "$SLUG" --no-focus)"
+read -r TAB_ID ROOT_PANE <<<"$(printf '%s' "$TAB_INFO" | python3 -c 'import sys,json; r=json.load(sys.stdin)["result"]; print(r["tab"]["tab_id"], r["root_pane"]["pane_id"])')"
+
+herdr pane run "$ROOT_PANE" "HERDR_DISPATCH_PROMPT=\$(cat '$PROMPTFILE' && printf .) && HERDR_DISPATCH_PROMPT=\${HERDR_DISPATCH_PROMPT%.} && rm -rf '$TMP' && cd '$CWD' && AGENT_TASK=1 $AGENT \"\$HERDR_DISPATCH_PROMPT\""
+# The queued pane owns the prompt until it reads it, then removes its directory.
+PROMPT_TRANSFERRED=1
+
+herdr tab focus "$TAB_ID" >/dev/null 2>&1 || true
+
+python3 - "$TASK" "$SLUG" "$BACKEND" "$AGENT" "$CWD" "$TAB_ID" "$ROOT_PANE" <<'PY'
+import json, sys
+task, slug, backend, agent, cwd, tab, pane = sys.argv[1:8]
+print(json.dumps({"task": task, "slug": slug, "backend": backend, "agent": agent,
+                  "cwd": cwd, "tab_id": tab, "pane": pane, "status": "launched"}, indent=2))
+PY

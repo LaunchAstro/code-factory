@@ -1,0 +1,187 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "declare.schema.json",
+  "title": "Work-map declaration version 1",
+  "description": "Record shape. Project configuration and session history impose further membership and binding checks in declare.mjs. Input omits schemaVersion and observedAt; the writer supplies both.",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "observedAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d\\.\\d{3}Z$"
+    },
+    "projectId": {
+      "$ref": "#/$defs/identity"
+    },
+    "repository": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9][a-zA-Z0-9-]*/[a-zA-Z0-9][a-zA-Z0-9_.-]*$"
+    },
+    "laneId": {
+      "$ref": "#/$defs/identity"
+    },
+    "sessionId": {
+      "$ref": "#/$defs/identity"
+    },
+    "machine": {
+      "$ref": "#/$defs/identity"
+    },
+    "workspaceId": {
+      "$ref": "#/$defs/identity"
+    },
+    "paneId": {
+      "$ref": "#/$defs/identity"
+    },
+    "assignmentId": {
+      "$ref": "#/$defs/identity"
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "observedAt",
+    "projectId",
+    "repository",
+    "laneId",
+    "sessionId",
+    "machine",
+    "workspaceId",
+    "paneId",
+    "assignmentId"
+  ],
+  "oneOf": [
+    {
+      "properties": {
+        "kind": {
+          "enum": ["boot", "assignment"]
+        },
+        "sectionId": {
+          "type": ["string", "null"],
+          "pattern": "^[a-z][a-z0-9-]*$"
+        },
+        "mapRef": {
+          "$ref": "#/$defs/reference"
+        },
+        "specRef": {
+          "$ref": "#/$defs/reference"
+        },
+        "ticketRef": {
+          "$ref": "#/$defs/reference"
+        },
+        "phase": {
+          "enum": ["map", "tickets", "spec", "build"]
+        }
+      },
+      "required": ["kind", "sectionId", "mapRef", "specRef", "ticketRef", "phase"]
+    },
+    {
+      "properties": {
+        "kind": {
+          "enum": ["transition"]
+        },
+        "transition": {
+          "enum": ["assigned", "blocked", "resumed", "stopped", "wrapped"]
+        }
+      },
+      "required": ["kind", "transition"]
+    },
+    {
+      "properties": {
+        "kind": {
+          "enum": ["activity"]
+        },
+        "activity": {
+          "const": "DONE"
+        }
+      },
+      "required": ["kind", "activity"]
+    },
+    {
+      "properties": {
+        "kind": {
+          "enum": ["pr-opened", "pr-pushed"]
+        },
+        "prRef": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9-]*/[a-zA-Z0-9][a-zA-Z0-9_.-]*#[1-9][0-9]*$"
+        },
+        "head": {
+          "$ref": "#/$defs/head"
+        }
+      },
+      "required": ["kind", "prRef", "head"]
+    },
+    {
+      "properties": {
+        "kind": {
+          "enum": ["review"]
+        },
+        "prRef": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9-]*/[a-zA-Z0-9][a-zA-Z0-9_.-]*#[1-9][0-9]*$"
+        },
+        "head": {
+          "$ref": "#/$defs/head"
+        },
+        "verdict": {
+          "enum": ["approved", "changes-requested", "commented", "unknown"]
+        }
+      },
+      "required": ["kind", "prRef", "head", "verdict"]
+    },
+    {
+      "properties": {
+        "kind": {
+          "enum": ["merge"]
+        },
+        "prRef": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9-]*/[a-zA-Z0-9][a-zA-Z0-9_.-]*#[1-9][0-9]*$"
+        },
+        "head": {
+          "$ref": "#/$defs/head"
+        },
+        "mergeCommit": {
+          "$ref": "#/$defs/head"
+        }
+      },
+      "required": ["kind", "prRef", "head", "mergeCommit"]
+    },
+    {
+      "properties": {
+        "kind": {
+          "enum": ["switch-on", "served-build"]
+        },
+        "head": {
+          "$ref": "#/$defs/head"
+        },
+        "buildId": {
+          "$ref": "#/$defs/identity"
+        },
+        "evidenceRef": {
+          "type": "string",
+          "maxLength": 1024,
+          "pattern": "^https://[^\\s?#@]+(?:[/?#][^\\s]*)?$"
+        }
+      },
+      "required": ["kind", "head", "buildId", "evidenceRef"]
+    }
+  ],
+  "unevaluatedProperties": false,
+  "$defs": {
+    "identity": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_.:-]{0,127}$"
+    },
+    "head": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{40}$"
+    },
+    "reference": {
+      "type": ["string", "null"],
+      "pattern": "^[a-zA-Z0-9][a-zA-Z0-9-]*/[a-zA-Z0-9][a-zA-Z0-9_.-]*#[1-9][0-9]*$"
+    }
+  }
+}

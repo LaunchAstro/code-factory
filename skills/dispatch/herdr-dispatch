@@ -1,0 +1,196 @@
+#!/usr/bin/env bash
+# herdr-dispatch — hand one task off to a fresh agent in its own herdr tab.
+#
+# Opens a new tab (labelled with the task), launches the chosen LLM in it with
+# YOLO/skip-permission flags, and injects the task prompt as the agent's first
+# message — so you never copy-paste a prompt into a new session by hand. Single
+# agent, single tab. For the multi-angle fan-out version see herdr-research.
+#
+# Usage:
+#   herdr-dispatch <spec.json>
+#   herdr-dispatch --dry-run <spec.json>   # use 'echo' instead of the agent
+#
+# Spec format (JSON):
+# {
+#   "task":            "Human task name",        # used as the tab label
+#   "slug":            "task-slug",              # optional; falls back to task
+#   "backend":         "claude" | "codex",       # which LLM (default claude)
+#   "agent":           "claude --dangerously-skip-permissions",  # optional; wins over backend
+#   "cwd":             "/abs/path",              # optional working dir (default $HOME)
+#   "prompt":          "full task / pre-prompt text",
+#   "apply_preprompt": false,                    # optional; prepend $AGENT_PREPROMPT load line
+#   "wait":            false,                     # optional; block until agent reaches 'done'
+#   "timeout_ms":      1800000                    # optional; wait timeout, default 30m
+# }
+#
+# Backend -> command:
+#   claude -> claude --dangerously-skip-permissions
+#   codex  -> codex --yolo
+# Override either with an explicit "agent" string (e.g. to add codex's --search).
+#
+# Notes:
+# - Must run inside a herdr-managed pane (HERDR_ENV=1). The new tab is created in
+#   the workspace that owns the current pane, and is focused so you can watch it.
+#   Never in a director's workspace (a label with a Director or Remote-Control
+#   part, e.g. CF-Director-1, CFR-Director-Alpha): a director sits alone in its own.
+# - The prompt is passed via a temp file and "$(cat file)" so quotes/newlines in
+#   the brief survive untouched. The launched session stays interactive.
+
+set -euo pipefail
+
+DRY_RUN=0
+if [[ "${1:-}" == "--dry-run" ]]; then
+  DRY_RUN=1
+  shift
+fi
+
+SPEC="${1:-}"
+if [[ -z "$SPEC" || ! -f "$SPEC" ]]; then
+  echo "herdr-dispatch: spec file not found. Usage: herdr-dispatch [--dry-run] <spec.json>" >&2
+  exit 2
+fi
+
+if [[ "${HERDR_ENV:-}" != "1" ]]; then
+  echo "herdr-dispatch: not inside a herdr pane (HERDR_ENV != 1). Aborting." >&2
+  exit 3
+fi
+
+command -v herdr >/dev/null   || { echo "herdr-dispatch: herdr not on PATH." >&2; exit 4; }
+command -v python3 >/dev/null  || { echo "herdr-dispatch: python3 required." >&2; exit 4; }
+
+# ---- read spec fields via python3 -------------------------------------------
+read_field() { python3 -c "import json,sys; d=json.load(open(sys.argv[1])); sys.stdout.write(str(d.get(sys.argv[2], sys.argv[3])))" "$SPEC" "$1" "${2:-}"; }
+
+TASK="$(read_field task '')"
+SLUG="$(read_field slug '')"
+BACKEND="$(read_field backend claude)"
+AGENT="$(read_field agent '')"
+CWD="$(read_field cwd "$HOME")"
+PROMPT="$(read_field prompt '' && printf .)"
+PROMPT=${PROMPT%.}
+APPLY_PP="$(read_field apply_preprompt false)"
+WAIT="$(read_field wait false)"
+TIMEOUT_MS="$(read_field timeout_ms 1800000)"
+
+[[ -z "$SLUG" ]] && SLUG="$(printf '%s' "${TASK:-task}" | tr '[:upper:] ' '[:lower:]-' | tr -cd 'a-z0-9-' | cut -c1-40)"
+[[ -z "$SLUG" ]] && SLUG="task"
+
+if [[ -z "$PROMPT" ]]; then
+  echo "herdr-dispatch: spec needs a non-empty 'prompt'." >&2
+  exit 2
+fi
+
+# ---- resolve the agent command from backend ---------------------------------
+if [[ -z "$AGENT" ]]; then
+  case "$BACKEND" in
+    claude|anthropic) AGENT="claude --dangerously-skip-permissions" ;;
+    codex|openai)     AGENT="codex --yolo" ;;
+    *) echo "herdr-dispatch: unknown backend '$BACKEND' (use claude|codex, or set 'agent')." >&2; exit 2 ;;
+  esac
+fi
+
+mkdir -p "$CWD"
+
+# ---- pre-trust cwd for codex (--yolo does not bypass its trust gate) ---------
+if [[ "$AGENT" == codex* ]]; then
+  trust_dir() {
+    local d="$1" cfg="$HOME/.codex/config.toml"
+    [[ -z "$d" ]] && return 0
+    mkdir -p "$(dirname "$cfg")"; touch "$cfg"
+    if ! grep -qF "[projects.\"$d\"]" "$cfg"; then
+      printf '\n[projects."%s"]\ntrust_level = "trusted"\n' "$d" >>"$cfg"
+    fi
+  }
+  trust_dir "$CWD"
+  REAL_CWD="$(cd "$CWD" && pwd -P)"
+  [[ "$REAL_CWD" != "$CWD" ]] && trust_dir "$REAL_CWD"
+fi
+
+# ---- optionally prepend a startup-prompt load line --------------------------
+# Set AGENT_PREPROMPT to the file the spawned agent should read first.
+PP_LINE="${AGENT_PREPROMPT:+Read and apply: $AGENT_PREPROMPT}"
+FULLPROMPT="$PROMPT"
+if [[ "$APPLY_PP" == "True" || "$APPLY_PP" == "true" ]]; then
+  if [[ -z "$PP_LINE" ]]; then
+    echo "herdr-dispatch: apply_preprompt is set but AGENT_PREPROMPT is empty; no startup prompt to prepend." >&2
+    exit 2
+  fi
+  FULLPROMPT="$PP_LINE
+
+$PROMPT"
+fi
+
+TMP="$(mktemp -d "${TMPDIR:-/tmp}/herdr-dispatch.XXXXXX")"
+PROMPT_TRANSFERRED=0
+trap '[ "$PROMPT_TRANSFERRED" = 1 ] || rm -rf "$TMP"' EXIT
+PROMPTFILE="$TMP/prompt.txt"
+printf '%s' "$FULLPROMPT" >"$PROMPTFILE"
+
+jq_tabroot() { python3 -c 'import sys,json; r=json.load(sys.stdin)["result"]; print(r["tab"]["tab_id"], r["root_pane"]["pane_id"])'; }
+
+# ---- find the workspace that owns the focused pane --------------------------
+CUR_WS="$(herdr pane list | python3 -c 'import sys,json
+d=json.load(sys.stdin)
+def find(o):
+    if isinstance(o,dict):
+        if o.get("focused") and "workspace_id" in o: return o["workspace_id"]
+        for v in o.values():
+            r=find(v)
+            if r is not None: return r
+    elif isinstance(o,list):
+        for v in o:
+            r=find(v)
+            if r is not None: return r
+    return None
+ws=find(d)
+print(ws if ws is not None else 1)')"
+# the caller's own workspace beats whatever the operator happens to be looking at
+[[ -n "$HERDR_WORKSPACE_ID" ]] && CUR_WS="$HERDR_WORKSPACE_ID"
+
+# ---- never a director's workspace (owner, 26 Oct 2026, code-factory #322) -------
+# A label that cannot be read refuses too: guessed, it could open a tab beside a director.
+CUR_LABEL="$(herdr workspace list | python3 -c 'import sys,json
+print([w["label"] for w in json.load(sys.stdin)["result"]["workspaces"] if w["workspace_id"] == sys.argv[1]][0])' "$CUR_WS")" \
+  || { echo "herdr-dispatch: cannot read the label of workspace $CUR_WS; nothing opened." >&2; exit 5; }
+if [[ "$CUR_LABEL" =~ (^|-)(Director|Remote-Control)(-|$) ]]; then
+  echo "herdr-dispatch: $CUR_LABEL is a director's workspace, which holds the director alone; nothing opened." >&2
+  exit 2
+fi
+
+# ---- create the tab ----------------------------------------------------------
+TAB_INFO="$(herdr tab create --workspace "$CUR_WS" --label "$SLUG" --no-focus 2>/dev/null \
+  || herdr tab create --workspace "$CUR_WS" --label "$SLUG")"
+read -r TAB_ID ROOT_PANE <<<"$(printf '%s' "$TAB_INFO" | jq_tabroot)"
+
+# ---- launch the agent with the prompt as its first message ------------------
+# AGENT_TASK=1 marks a dispatched agent as a task agent: its brief is its whole boot.
+if [[ "$DRY_RUN" == "1" ]]; then
+  herdr pane run "$ROOT_PANE" "cd '$CWD' && echo '[dry-run] would launch: $AGENT' && echo '[dry-run] task: $TASK'"
+else
+  herdr pane run "$ROOT_PANE" "HERDR_DISPATCH_PROMPT=\$(cat '$PROMPTFILE' && printf .) && HERDR_DISPATCH_PROMPT=\${HERDR_DISPATCH_PROMPT%.} && rm -rf '$TMP' && cd '$CWD' && AGENT_TASK=1 $AGENT \"\$HERDR_DISPATCH_PROMPT\""
+  # The queued pane owns the prompt until it reads it, then removes its directory.
+  PROMPT_TRANSFERRED=1
+fi
+
+# ---- focus the new tab so the owner lands in the session -----------------------
+herdr tab focus "$TAB_ID" >/dev/null 2>&1 || true
+
+# ---- optional wait -----------------------------------------------------------
+STATUS="launched"
+if [[ "$WAIT" == "True" || "$WAIT" == "true" ]] && [[ "$DRY_RUN" != "1" ]]; then
+  if herdr wait agent-status "$ROOT_PANE" --status done --timeout "$TIMEOUT_MS" >/dev/null 2>&1; then
+    STATUS="done"
+  else
+    STATUS="timeout-or-unknown"
+  fi
+fi
+
+# ---- emit JSON result --------------------------------------------------------
+python3 - "$TASK" "$SLUG" "$BACKEND" "$AGENT" "$CWD" "$TAB_ID" "$ROOT_PANE" "$STATUS" <<'PY'
+import json,sys
+task,slug,backend,agent,cwd,tab,pane,status=sys.argv[1:9]
+print(json.dumps({
+    "task":task,"slug":slug,"backend":backend,"agent":agent,
+    "cwd":cwd,"tab_id":tab,"pane":pane,"status":status,
+},indent=2))
+PY

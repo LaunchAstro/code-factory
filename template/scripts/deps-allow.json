@@ -1,0 +1,6 @@
+{
+  "note": "Packages that are genuinely used and that no rule in scripts/deps-check.mjs can see. Each entry says why. The list is meant to stay short.",
+  "packages": {
+    "@types/node": "Node's type definitions. tsconfig.json names the bare type 'node', never the package, and nothing imports it."
+  }
+}

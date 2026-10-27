@@ -1,0 +1,123 @@
+#!/bin/zsh
+# Boot a Claude Code seat as a NEW herdr window (fresh session, every time).
+#   claude-seat-up <SEAT>                       # new window on that seat: "seat-<SEAT>"
+#   claude-seat-up --name <PROJ>-<Job> <SEAT>   # a named job: "<PROJ>-<Job>-<Seat>", started with AGENT_TASK=1
+#   claude-seat-up --name <PROJ>-Orchestrator <SEAT>  # roles (-Orchestrator, -Director, -Remote-Control)
+#                                               # carry the seat too, and start without AGENT_TASK
+#   claude-seat-up all                          # a new window per seat holding a token
+#   claude-seat-up <SEAT> --model opus          # extra args pass through to claude
+#   claude-seat-up --existing <SEAT>            # focus a running window on that seat instead: seat-<SEAT>,
+#                                               # <PROJ>-<Job>-<Seat>, a role window, or a numbered -2
+set -e
+# A list piped into the JSON parser fails when herdr fails, not only when the
+# parser does. Sol's review of 7790dc6 found lists exiting 43 booting a seat.
+setopt pipefail
+
+seats_dir="${CLAUDE_SEAT_TOKEN_DIR:?set CLAUDE_SEAT_TOKEN_DIR to the folder holding <SEAT>.token}"
+
+ws_id() {  # workspace id for label $1, empty if absent
+  herdr workspace list | python3 -c '
+import sys, json
+label = sys.argv[1]
+ws = [w["workspace_id"] for w in json.load(sys.stdin)["result"]["workspaces"] if w["label"] == label]
+print(ws[0] if ws else "")' "$1"
+}
+
+base_label() {  # <NAME>-<Seat>, role panes included (OA-Orchestrator-Alpha); no name = seat-<SEAT>
+  if [[ -z "$SEAT_UP_NAME" ]]; then print "seat-$1"
+  else print "$SEAT_UP_NAME-${(C)1}"
+  fi
+}
+
+seat_ws() {  # first workspace whose label ends in -<seat>, or -<seat>-<n> (seat-alpha, <Job>-Alpha, <Job>-Alpha-2).
+  # A seat name has no dash, so this reads the same whatever other seats exist.
+  herdr workspace list | python3 -c '
+import sys, json, re
+end = re.compile("-" + re.escape(sys.argv[1]) + r"(-[0-9]+)?$", re.I)
+ws = [w["workspace_id"] for w in json.load(sys.stdin)["result"]["workspaces"] if end.search(w["label"])]
+print(ws[0] if ws else "")' "$1"
+}
+
+free_label() {  # base label, then <base>-2, -3, ... until unused
+  local base="$(base_label "$1")" n=2
+  local label="$base" ws
+  while ws=$(ws_id "$label") || return 1; [[ -n "$ws" ]]; do
+    label="$base-$n"; (( n++ ))
+  done
+  print "$label"
+}
+
+# Every herdr call is checked here: `all` calls up() under `||`, where zsh
+# ignores set -e, and Sol's review of 69afe53 found a failed `pane run`
+# reported as booting.
+up() {
+  local seat="$1"; shift
+  # The name goes into a path and into the pane's command, so it is a plain
+  # name or nothing. It ends every window label, so it holds no dash and starts
+  # with a letter: OA-Job-X-One is then seat one's, never a seat x-one's, and
+  # Seat-One-2 is seat one's second window, never a seat 2's.
+  [[ "$seat" =~ '^[A-Za-z][A-Za-z0-9._]*$' ]] || { print -u2 "not a seat name: ${(q-)seat} (letters, digits, . and _, starting with a letter)"; return 1 }
+  # Role windows made before roles carried the seat keep their labels (CFR-Director), and a hand-over leaves its
+  # outgoing window as <PROJ>-Orchestrator-Old, so a role word or old is never a seat.
+  [[ "${(L)seat}" == (director|orchestrator|remote|control|old) ]] && { print -u2 "not a seat name: $seat (a role word)"; return 1 }
+  local launcher="$HOME/bin/claude-$seat"
+  [[ -x "$launcher" ]] || { print -u2 "no launcher: $launcher"; return 1 }
+  [[ -s "$seats_dir/$seat.token" ]] || { print -u2 "no token: $seats_dir/$seat.token"; return 1 }
+
+  if [[ -n "$SEAT_UP_EXISTING" ]]; then
+    local ws
+    ws=$(seat_ws "$seat") || { print -u2 "seat-$seat: workspace list failed"; return 1 }
+    if [[ -n "$ws" ]]; then
+      print "seat-$seat already up ($ws): focusing"
+      herdr workspace focus "$ws" >/dev/null || { print -u2 "seat-$seat: focus failed"; return 1 }
+      return 0
+    fi
+    print "seat-$seat not running, opening a new window"
+  fi
+
+  local label ws pane
+  label=$(free_label "$seat") || return 1
+  herdr workspace create --cwd "$HOME" --label "$label" --no-focus >/dev/null \
+    || { print -u2 "seat-$seat: workspace create failed"; return 1 }
+  sleep 1
+  ws=$(ws_id "$label") && [[ -n "$ws" ]] || { print -u2 "seat-$seat: no workspace labelled $label"; return 1 }
+  pane=$(herdr pane list --workspace "$ws" \
+    | python3 -c 'import sys,json; print(json.load(sys.stdin)["result"]["panes"][0]["pane_id"])') \
+    && [[ -n "$pane" ]] || { print -u2 "seat-$seat: no pane in $ws"; return 1 }
+  # A pane opened for a named job is a task agent: AGENT_TASK=1 tells it the
+  # brief is its whole boot. Role panes and a bare seat are the owner's or a
+  # director's, so they start without it. The test reads the name, not the
+  # label, which always ends in the seat.
+  local tag="AGENT_TASK=1 "
+  [[ -z "$SEAT_UP_NAME" || "$SEAT_UP_NAME" == *-Orchestrator || "$SEAT_UP_NAME" == *-Director || "$SEAT_UP_NAME" == *-Remote-Control ]] && tag=""
+  # Each argument quoted on its own: Sol's review of 69afe53 found `$*`
+  # letting one argument end the launcher's command and start another.
+  herdr pane run "$pane" "${tag}\$HOME/bin/claude-$seat --dangerously-skip-permissions ${(j: :)${(qq)@}}" \
+    || { print -u2 "seat-$seat: pane run failed in $pane"; return 1 }
+  print "$label booting in $pane"
+}
+
+while [[ "$1" == -* ]]; do
+  case "$1" in
+    --existing|-e) export SEAT_UP_EXISTING=1; shift ;;
+    # The name becomes a window label, so it is a plain name like a seat's.
+    --name|-n) [[ "$2" =~ '^[A-Za-z0-9][A-Za-z0-9._-]*$' ]] || { print -u2 "--name needs a plain name: ${(q-)2}"; exit 2 }
+               export SEAT_UP_NAME="$2"; shift 2 ;;
+    *) break ;;
+  esac
+done
+
+[[ -n "$1" ]] || { print -u2 "usage: claude-seat-up [--existing] [--name <PROJ>-<Job>] <seat|all> [claude args...]"; exit 2 }
+
+if [[ "$1" == all ]]; then
+  shift
+  tokens=("$seats_dir"/*.token(N))
+  (( $#tokens )) || { print -u2 "no seat tokens in $seats_dir"; exit 1 }
+  failed=0
+  for f in $tokens; do
+    up "${${f:t}:r}" "$@" || failed=1
+  done
+  exit $failed
+else
+  up "$@"
+fi

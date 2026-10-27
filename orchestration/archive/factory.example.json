@@ -1,0 +1,20 @@
+{
+  "project": "Ops Astro",
+  "owner": "LaunchAstro",
+  "repo": "code-factory",
+  "upstreamOwner": "LaunchAstro",
+  "clone": "$HOME/Projects/code-factory",
+  "orchestrationRoot": "$HOME/Projects/your-roadmap",
+  "orchestrationRepo": "your-org/your-roadmap",
+  "reportDir": "docs/rounds",
+  "seat": "yourseat",
+  "model": "opus",
+  "ghAccount": "Your-GitHub-Handle",
+  "reviewer": "Sol",
+  "reviewerAccount": "Your-Reviewer-Handle",
+  "branchPrefix": "fix",
+  "orchestratorNumber": 1,
+  "passesGranted": 1,
+  "keepOpen": "none",
+  "seatTranscriptDir": "$HOME/.claude-seat-yourseat/projects"
+}

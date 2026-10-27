@@ -1,0 +1,14 @@
+{
+  "branch": "main",
+  "note": "The check contexts the branch ruleset requires. Nothing here proves what the ruleset requires; tests/ci/review-evidence-cases.sh refuses a tree whose record and whose workflow disagree, and scripts/check-context-manifest.mjs refuses a malformed or ambiguous record.",
+  "requiredChecks": [
+    "contamination gate",
+    "gitleaks over the full history",
+    "local checks",
+    "OSI licence allowlist",
+    "commit messages and provenance",
+    "review evidence for this revision",
+    "pull request size",
+    "the plan's tests were red before the code"
+  ]
+}

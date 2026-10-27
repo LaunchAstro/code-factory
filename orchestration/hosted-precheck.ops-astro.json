@@ -1,0 +1,93 @@
+{
+  "repo": "LaunchAstro/ops-astro",
+  "workflow": "ci",
+  "workflowPath": ".github/workflows/ci.yml",
+  "context": "hosted/precheck",
+  "lane": "OA-Precheck-C",
+  "identities": ["Nathan-Mulligan", "Houston-Astro"],
+  "holdLabels": ["held", "unreviewed", "sent-back", "precheck-batch"],
+  "batchLabels": ["ci-next", "precheck-batch"],
+  "branchPrefix": "precheck-c/",
+  "maxBuildingGroups": 1,
+  "settleSeconds": 180,
+  "pins": {
+    ".github/workflows/ci.yml": "6b784397d703aa00a2f44a2cdc78419873d89635",
+    "scripts/ci-scope.ts": "2a583a77b314a47a03ac55bc66eaf28ee0483d17",
+    "scripts/ci-scope.json": "7cea5fbef9b4761b5a9c531b367b71bdb91754d0",
+    "scripts/full-run.ts": "c5f42f28dec6e7b0e9700a0acf87bb13790a2f8d"
+  },
+  "gateJob": "contamination gate",
+  "requiredJobs": ["full checks"],
+  "units": {
+    "gate": "contamination gate",
+    "secrets": "gitleaks over the full history",
+    "prsize": "pull request size",
+    "audit": "dependency audit",
+    "semgrep": "static analysis",
+    "iso1": {
+      "none": "scripts/ci-scope.ts defers isolation tests on a pull request (queueOnly); ops-astro#1918"
+    },
+    "iso2": {
+      "none": "scripts/ci-scope.ts defers isolation tests on a pull request (queueOnly); ops-astro#1918"
+    },
+    "iso3": {
+      "none": "scripts/ci-scope.ts defers isolation tests on a pull request (queueOnly); ops-astro#1918"
+    },
+    "check1": {
+      "none": "scripts/ci-scope.ts defers the local checks steps on a pull request (queueOnly); ops-astro#1918"
+    },
+    "check2": {
+      "none": "scripts/ci-scope.ts defers the local checks steps on a pull request (queueOnly); ops-astro#1918"
+    },
+    "check3": {
+      "none": "scripts/ci-scope.ts defers the local checks steps on a pull request (queueOnly); ops-astro#1918"
+    },
+    "db1": {
+      "none": "ci.yml database-shard is skipped on a pull_request event; ops-astro#1918"
+    },
+    "db2": {
+      "none": "ci.yml database-shard is skipped on a pull_request event; ops-astro#1918"
+    },
+    "db3": {
+      "none": "ci.yml database-shard is skipped on a pull_request event; ops-astro#1918"
+    },
+    "db4": {
+      "none": "ci.yml database-shard is skipped on a pull_request event; ops-astro#1918"
+    },
+    "db5": {
+      "none": "ci.yml database-shard is skipped on a pull_request event; ops-astro#1918"
+    },
+    "db6": {
+      "none": "ci.yml database-shard is skipped on a pull_request event; ops-astro#1918"
+    },
+    "db7": {
+      "none": "ci.yml database-shard is skipped on a pull_request event; ops-astro#1918"
+    },
+    "db8": {
+      "none": "ci.yml database-shard is skipped on a pull_request event; ops-astro#1918"
+    },
+    "db9": {
+      "none": "ci.yml database-shard is skipped on a pull_request event; ops-astro#1918"
+    },
+    "db10": {
+      "none": "ci.yml database-shard is skipped on a pull_request event; ops-astro#1918"
+    },
+    "db11": {
+      "none": "ci.yml database-shard is skipped on a pull_request event; ops-astro#1918"
+    },
+    "db12": {
+      "none": "ci.yml database-shard is skipped on a pull_request event; ops-astro#1918"
+    },
+    "pins": "pin and count tests",
+    "dbgate": "database conformance gate",
+    "commits": "commit messages and provenance",
+    "licences": "OSI licence allowlist",
+    "parity": "command parity"
+  },
+  "deferred": [
+    "deferred on a pull request",
+    "not run, no mapped path changed",
+    "the full set waits for the ci-next label",
+    "the shards run in the merge queue"
+  ]
+}

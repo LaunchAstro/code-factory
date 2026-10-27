@@ -1,0 +1,9 @@
+{
+  "orgs": ["LaunchAstro"],
+  "users": [{"login": "Nathan-Mulligan", "id": 183608168}],
+  "bots": [
+    {"login": "github-actions", "id": 41898282},
+    {"login": "copilot-pull-request-reviewer", "id": 175728472},
+    {"login": "vercel", "id": 35613825}
+  ]
+}

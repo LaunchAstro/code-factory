@@ -1,0 +1,44 @@
+name: pull request size
+# The size gate, and the only workflow that reports `pull request size`.
+#
+# It is here rather than in `ci.yml` because it is the one check a label
+# decides: `scripts/pr-size.mjs` reads the waiver labels, so a waiver applied
+# after a red result has to turn it green and a waiver removed after a green
+# one has to turn it red. That means running on `labeled` and `unlabeled`, and
+# round five watched those two actions start the whole of `ci.yml` on a head
+# nobody had pushed to.
+#
+# No job here carries a condition on the label name, and that is deliberate.
+# GitHub reports a job a condition skipped as a check run, and a skipped
+# required check is not a red one, so a guard written by label name would let
+# any label at all replace this context's result. The job runs, reads the
+# labels the event carries, and reports what it finds. Ticket 10.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pr-size:
+    name: pull request size
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Measure the diff against the size rule
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_LABELS: ${{ toJSON(github.event.pull_request.labels.*.name) }}
+        run: node scripts/pr-size.mjs
+      - name: The size gate's own cases
+        run: bash tests/ci/pr-size-cases.sh

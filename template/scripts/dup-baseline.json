@@ -1,0 +1,5 @@
+{
+  "note": "The duplication that was already here when scripts/dup-check.mjs was written. The gate refuses what is new, so this list is meant to stay short and to shrink. Adding to it is a decision, not a fix.",
+  "windows": {},
+  "stems": []
+}

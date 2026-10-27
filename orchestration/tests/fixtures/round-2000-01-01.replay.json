@@ -1,0 +1,76 @@
+{
+  "projectionLines": 424,
+  "idle": {
+    "lane": "EXAMPLE-012",
+    "startedAt": "2000-01-01T04:48:27Z",
+    "lastSignal": "2000-01-01T11:17:40Z",
+    "wrappedAt": "2000-01-01T14:02:12Z"
+  },
+  "stalls": [
+    {
+      "id": "gap-1",
+      "lastMerge": "2000-01-01T00:29:36Z",
+      "nextMerge": "2000-01-01T01:15:23Z",
+      "pr": 1006,
+      "queued": 1,
+      "queueObservedAt": "2000-01-01T00:29:37Z",
+      "cause": "flaky-check-requeued-once"
+    },
+    {
+      "id": "gap-2",
+      "lastMerge": "2000-01-01T03:26:40Z",
+      "nextMerge": "2000-01-01T04:22:43Z",
+      "pr": 1007,
+      "queued": 1,
+      "queueObservedAt": "2000-01-01T03:45:53Z",
+      "falseAlarm": true,
+      "cause": "slow-shard-passed-without-requeue"
+    },
+    {
+      "id": "gap-3",
+      "lastMerge": "2000-01-01T04:22:43Z",
+      "nextMerge": "2000-01-01T05:12:18Z",
+      "pr": 1012,
+      "queued": 3,
+      "queueObservedAt": "2000-01-01T04:55:28Z",
+      "cause": "rebase-and-conflict"
+    },
+    {
+      "id": "gap-4",
+      "lastMerge": "2000-01-01T06:37:32Z",
+      "nextMerge": "2000-01-01T08:28:46Z",
+      "pr": 1039,
+      "queued": 2,
+      "queueObservedAt": "2000-01-01T07:15:43Z",
+      "cause": "test-failure-then-fix"
+    },
+    {
+      "id": "gap-5",
+      "lastMerge": "2000-01-01T09:08:46Z",
+      "nextMerge": "2000-01-01T10:27:13Z",
+      "pr": 1049,
+      "queued": 3,
+      "queueObservedAt": "2000-01-01T09:34:07Z",
+      "falseAlarm": true,
+      "cause": "queue-ci-progressing-then-passed"
+    },
+    {
+      "id": "gap-6",
+      "lastMerge": "2000-01-01T11:08:09Z",
+      "nextMerge": "2000-01-01T12:10:27Z",
+      "pr": 1056,
+      "queued": 1,
+      "queueObservedAt": "2000-01-01T11:43:35Z",
+      "cause": "review-changes-requested"
+    },
+    {
+      "id": "gap-7",
+      "lastMerge": "2000-01-01T12:55:37Z",
+      "nextMerge": "2000-01-01T14:25:33Z",
+      "pr": 1076,
+      "queued": 2,
+      "queueObservedAt": "2000-01-01T13:24:52Z",
+      "cause": "conflict-then-review-wait"
+    }
+  ]
+}

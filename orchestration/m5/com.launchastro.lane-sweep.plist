@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- The M5's weekly lane sweep, Sunday 22:00 machine time (AEST). LANE_ROOT_DIR and LANE_ARCHIVE_DIR are replaced at install (README.md). -->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.launchastro.lane-sweep</string>
+  <key>ProgramArguments</key>
+  <array><string>/bin/zsh</string><string>LANE_ROOT_DIR/bin/lane-sweep.sh</string></array>
+  <key>EnvironmentVariables</key>
+  <dict><key>LANE_ROOT</key><string>LANE_ROOT_DIR</string><key>LANE_ARCHIVE_ROOT</key><string>LANE_ARCHIVE_DIR</string></dict>
+  <key>StartCalendarInterval</key>
+  <dict><key>Weekday</key><integer>0</integer><key>Hour</key><integer>22</integer><key>Minute</key><integer>0</integer></dict>
+  <key>LowPriorityIO</key><true/>
+  <key>Nice</key><integer>10</integer>
+  <key>StandardOutPath</key><string>LANE_ROOT_DIR/logs/lane-sweep.out</string>
+  <key>StandardErrorPath</key><string>LANE_ROOT_DIR/logs/lane-sweep.out</string>
+</dict>
+</plist>

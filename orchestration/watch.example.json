@@ -1,0 +1,11 @@
+{
+  "touches": {
+    "busyFilesSource": "docs/rounds/2026-10-11-claude-single-owner/OWNER-LESSONS.md: Parallel lanes on adjacent files (11 October 2026)",
+    "busyFiles": [
+      "packages/core-commands/src/commands/outcome.ts",
+      "tests/reads/task-rank-core-upgrade-durable.test.ts",
+      "tests/reads/task-rank-core-contract.test.ts",
+      "apps/web/src/screens/Projects.tsx"
+    ]
+  }
+}

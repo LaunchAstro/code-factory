@@ -1,0 +1,22 @@
+{
+  "mergeStall": {
+    "minutes": 45,
+    "githubTimeoutMs": 30000,
+    "githubMaxBufferBytes": 67108864
+  },
+  "landingAssessment": {
+    "minutes": 45,
+    "githubTimeoutMs": 30000,
+    "githubMaxBufferBytes": 67108864
+  },
+  "arrivalCap": {
+    "ready": 4,
+    "githubTimeoutMs": 30000,
+    "githubMaxBufferBytes": 67108864
+  },
+  "laneWatch": {
+    "minutes": 30,
+    "readTimeoutMs": 30000,
+    "maxBufferBytes": 67108864
+  }
+}

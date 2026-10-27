@@ -1,0 +1,463 @@
+Pull request: 17 (repository <OWNER>/<REPO>, branch real7/16-pr-size-flags, base main)
+Head SHA: 36693cbb4ce2a8b9756e052f6c134d16eed8fe9d (short 36693cb)
+Worktree: <CLONE>/.worktrees/REVIEW-R7-17 (detached at that head)
+
+===== tests/acceptance/16-pr-size-flags/plan.md =====
+# Plan: the size gate reads its own command line, ticket 16
+
+The plan artefact for issue 16. It sits inside the acceptance directory because
+the first commit on the branch may touch only `tests/acceptance/<ticket>/`, and
+the plan has to be in that first commit.
+
+## Why
+
+Ticket 10 gave `scripts/pr-size.mjs` a command line so a builder could run the
+gate before pushing. The reader it gave the script answers a malformed command
+line with a number rather than with a refusal, and notes 5 and 6 of issue 13
+are the two ways it does that.
+
+`indexOf` takes the first occurrence, so `--base main --base no-such-ref`
+measures from `main`, prints a size, exits 0, and says nothing at all about the
+second flag. The builder who typed it is reading a figure for a range they did
+not ask for. That is the failure mode the whole ticket-10 change existed to
+close: a number that looks like the answer and is the answer to a different
+question.
+
+A flag with no value is the same hole through the other door. The reader
+returns `''` for a flag whose value is missing and `''` for a flag that was
+never passed, so `--head` as the last argument falls through to `HEAD_SHA`, and
+with that unset the script prints "pass --base and --head". Both flags were
+passed. The one that is wrong is not named, and the message sends the builder
+to look at the one that is right.
+
+Neither case is about a bad ref, which the script already refuses well: they
+are about a command line the script never read. A reader that cannot say which
+flag it could not read is the part that has to change.
+
+## Acceptance criteria
+
+1. A flag given twice refuses: `--base main --base no-such-ref` exits 2 and the
+   message names `--base`, rather than measuring from `main`.
+2. That refusal happens for `--head` as well as `--base`, and it happens
+   whether or not either value names a commit, because the command line is
+   wrong before any ref is resolved.
+3. A repeated flag prints no size line: nothing that reads as a measurement
+   reaches a builder who asked for a range twice.
+4. A flag with no value refuses and names that flag: `--base main --head` exits
+   2 with a message carrying `--head`, and not the generic "pass --base and
+   --head", which names the flag that was passed correctly.
+5. The same holds for an empty value, `--base ''`, which is a value given and
+   not a flag omitted.
+6. The environment path is unchanged: `BASE_SHA` and `HEAD_SHA` with no
+   arguments measure the same range and print the same line, because that is
+   how the workflow invokes it.
+7. A correct command line is unchanged: `--base <ref> --head <ref>` prints the
+   same `hand-written N of 400` line and exits on the same rule as before.
+8. Fails closed: when any input, file, tool or service the change depends on is
+   missing, malformed or errors, the change refuses or exits non-zero and says
+   why; it never reports success on an unread input.
+
+## Build brief
+
+Files: `scripts/pr-size.mjs`, the argument reader in front of the environment
+it already reads, and nothing else. No workflow, no other script.
+
+Size estimate: under 50 hand-written lines.
+
+===== tests/acceptance/16-pr-size-flags/pr-size-flags.test.ts =====
+// SPDX-License-Identifier: AGPL-3.0-only
+// Ticket 16, committed before the code.
+//
+// The command line is read off a real run of the script against a real
+// repository, because the thing under test is what a builder sees in a
+// terminal before a push. Every case runs with no CI environment set: the
+// defect is that a malformed flag falls through to `BASE_SHA` and `HEAD_SHA`,
+// and a test that sets them cannot see it fall.
+import { spawnSync } from 'node:child_process';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
+import { afterAll, describe, expect, test } from 'vitest';
+
+const root = resolve(import.meta.dirname, '../../..');
+
+const temporary: string[] = [];
+afterAll(() => {
+  for (const dir of temporary) rmSync(dir, { force: true, recursive: true });
+});
+
+const git = (dir: string, args: string[]): void => {
+  const run = spawnSync('git', args, { cwd: dir, encoding: 'utf8' });
+  expect(run.status, `${run.stdout ?? ''}${run.stderr ?? ''}`).toBe(0);
+};
+
+/** A repository with `main` at a seed and `feature` one commit of `count` lines on. */
+function branchRepo(count: number): string {
+  const dir = mkdtempSync(join(tmpdir(), 'pr-size-flags-'));
+  temporary.push(dir);
+  git(dir, ['init', '-q', '-b', 'main']);
+  git(dir, ['config', 'user.name', 'Flag Test']);
+  git(dir, ['config', 'user.email', 'flag-test@example.invalid']);
+  git(dir, ['config', 'commit.gpgsign', 'false']);
+  writeFileSync(join(dir, 'seed.txt'), 'seed\n');
+  git(dir, ['add', 'seed.txt']);
+  git(dir, ['commit', '-qm', 'seed']);
+  git(dir, ['checkout', '-q', '-b', 'feature']);
+  const body = Array.from({ length: count }, (_, line) => `line ${line}`).join('\n');
+  writeFileSync(join(dir, 'step.ts'), `${body}\n`);
+  git(dir, ['add', '-A']);
+  git(dir, ['commit', '-qm', 'feat: step']);
+  return dir;
+}
+
+/** The script, with the environment a terminal has and nothing a runner sets. */
+function sizer(
+  dir: string,
+  args: string[],
+  extra: Record<string, string> = {},
+): { status: number; output: string } {
+  const run = spawnSync(process.execPath, [resolve(root, 'scripts/pr-size.mjs'), ...args], {
+    cwd: dir,
+    encoding: 'utf8',
+    env: { PATH: process.env['PATH'] ?? '', HOME: process.env['HOME'] ?? '', ...extra },
+  });
+  return { status: run.status ?? -1, output: `${run.stdout ?? ''}${run.stderr ?? ''}` };
+}
+
+const SIZE_LINE = /hand-written \d+ of 400/u;
+
+describe('a flag given twice is a refusal, not a first occurrence', () => {
+  test('--base twice names --base and exits 2', () => {
+    const answer = sizer(branchRepo(50), ['--base', 'main', '--base', 'no-such-ref']);
+    expect(answer.output).toContain('--base');
+    expect(answer.status).toBe(2);
+  });
+
+  test('--head twice names --head and exits 2', () => {
+    const answer = sizer(branchRepo(50), ['--base', 'main', '--head', 'HEAD', '--head', 'main']);
+    expect(answer.output).toContain('--head');
+    expect(answer.status).toBe(2);
+  });
+
+  test('two commits that both resolve are still a refusal', () => {
+    const answer = sizer(branchRepo(50), ['--base', 'main', '--base', 'main', '--head', 'HEAD']);
+    expect(answer.status).toBe(2);
+  });
+
+  test('a repeated flag prints nothing that reads as a measurement', () => {
+    const answer = sizer(branchRepo(50), ['--base', 'main', '--base', 'no-such-ref']);
+    expect(answer.output).not.toMatch(SIZE_LINE);
+    expect(answer.output).not.toContain('within the rule');
+  });
+});
+
+describe('a flag with no value names that flag', () => {
+  test('--head last with no value is about --head, not about both', () => {
+    const answer = sizer(branchRepo(50), ['--base', 'main', '--head']);
+    expect(answer.output).toContain('--head');
+    expect(answer.output).not.toContain('pass --base and --head');
+    expect(answer.status).toBe(2);
+  });
+
+  test('--base last with no value is about --base', () => {
+    const answer = sizer(branchRepo(50), ['--head', 'HEAD', '--base']);
+    expect(answer.output).toContain('--base');
+    expect(answer.output).not.toContain('pass --base and --head');
+    expect(answer.status).toBe(2);
+  });
+
+  test('an empty value is a value given, not a flag omitted', () => {
+    const dir = branchRepo(50);
+    const rev = (ref: string): string =>
+      spawnSync('git', ['rev-parse', ref], { cwd: dir, encoding: 'utf8' }).stdout.trim();
+    const answer = sizer(dir, ['--base', '', '--head', 'HEAD'], { BASE_SHA: rev('main') });
+    expect(answer.output).toContain('--base');
+    expect(answer.status).toBe(2);
+  });
+});
+
+describe('the paths that already worked still work', () => {
+  test('one --base and one --head measure the range', () => {
+    const answer = sizer(branchRepo(50), ['--base', 'main', '--head', 'HEAD']);
+    expect(answer.output).toMatch(/hand-written 50 of 400/u);
+    expect(answer.status).toBe(0);
+  });
+
+  test('no arguments still reads BASE_SHA and HEAD_SHA', () => {
+    const dir = branchRepo(50);
+    const rev = (ref: string): string =>
+      spawnSync('git', ['rev-parse', ref], { cwd: dir, encoding: 'utf8' }).stdout.trim();
+    const answer = sizer(dir, [], { BASE_SHA: rev('main'), HEAD_SHA: rev('HEAD') });
+    expect(answer.output).toMatch(/hand-written 50 of 400/u);
+    expect(answer.status).toBe(0);
+  });
+
+  test('neither flag nor environment is still the generic message', () => {
+    const answer = sizer(branchRepo(50), []);
+    expect(answer.output).toContain('pass --base and --head');
+    expect(answer.status).toBe(2);
+  });
+});
+
+===== gh pr diff 17 =====
+diff --git a/scripts/pr-size.mjs b/scripts/pr-size.mjs
+index 871dc07..b4db69f 100644
+--- a/scripts/pr-size.mjs
++++ b/scripts/pr-size.mjs
+@@ -67,16 +67,41 @@ const GENERATED = [
+ // gets the same arithmetic before the push. Round five is the reason: both fix
+ // lanes measured their own commit instead of the pull request, and one reached
+ // 429 hand-written lines against this ceiling with nobody seeing it.
+-const argument = (name) => {
+-  const at = process.argv.indexOf(`--${name}`);
+-  return at === -1 ? '' : (process.argv[at + 1] ?? '').trim();
++//
++// A command line the script cannot read is a refusal, never a fallback, and
++// issue 16 is the two ways it used not to be. `indexOf` took the first
++// occurrence, so `--base main --base no-such-ref` measured from `main`,
++// printed a figure and exited 0 without mentioning the second flag: the
++// answer to a range nobody asked for, which is the failure this gate exists
++// to stop. And a flag with no value returned the same empty string as a flag
++// never passed, so `--head` last fell through to `HEAD_SHA` and the message
++// named both flags rather than the one at fault. A reader that cannot say
++// which flag it could not read sends the builder to the flag that is right.
++const refuse = (message) => {
++  console.error(`pr-size: ${message}`);
++  process.exit(2);
++};
++
++// Every position the flag occupies, skipping node and the script path.
++const positions = (flag) => {
++  const at = [];
++  for (let i = 2; i < process.argv.length; i += 1) if (process.argv[i] === flag) at.push(i);
++  return at;
+ };
+ 
+ const given = (name, variable) => {
+-  const flag = argument(name);
+-  return flag === ''
+-    ? { value: (process.env[variable] ?? '').trim(), named: variable }
+-    : { value: flag, named: `--${name}` };
++  const flag = `--${name}`;
++  const at = positions(flag);
++  if (at.length > 1) {
++    refuse(`${flag} is given ${at.length} times and only the first would be read. Pass it once.`);
++  }
++  if (at.length === 0) return { value: (process.env[variable] ?? '').trim(), named: variable };
++  // The value is whatever follows, so that `--end-of-options` below can take a
++  // revision beginning with a dash. Missing or empty is the malformed case: an
++  // omitted flag has no position at all and is already answered above.
++  const value = (process.argv[at[0] + 1] ?? '').trim();
++  if (value === '') refuse(`${flag} was given no value. It takes a revision to measure.`);
++  return { value, named: flag };
+ };
+ 
+ // Resolved by git, never trusted as text, and `--end-of-options` so a value
+diff --git a/tests/acceptance/16-pr-size-flags/plan.md b/tests/acceptance/16-pr-size-flags/plan.md
+new file mode 100644
+index 0000000..7eac8bb
+--- /dev/null
++++ b/tests/acceptance/16-pr-size-flags/plan.md
+@@ -0,0 +1,60 @@
++# Plan: the size gate reads its own command line, ticket 16
++
++The plan artefact for issue 16. It sits inside the acceptance directory because
++the first commit on the branch may touch only `tests/acceptance/<ticket>/`, and
++the plan has to be in that first commit.
++
++## Why
++
++Ticket 10 gave `scripts/pr-size.mjs` a command line so a builder could run the
++gate before pushing. The reader it gave the script answers a malformed command
++line with a number rather than with a refusal, and notes 5 and 6 of issue 13
++are the two ways it does that.
++
++`indexOf` takes the first occurrence, so `--base main --base no-such-ref`
++measures from `main`, prints a size, exits 0, and says nothing at all about the
++second flag. The builder who typed it is reading a figure for a range they did
++not ask for. That is the failure mode the whole ticket-10 change existed to
++close: a number that looks like the answer and is the answer to a different
++question.
++
++A flag with no value is the same hole through the other door. The reader
++returns `''` for a flag whose value is missing and `''` for a flag that was
++never passed, so `--head` as the last argument falls through to `HEAD_SHA`, and
++with that unset the script prints "pass --base and --head". Both flags were
++passed. The one that is wrong is not named, and the message sends the builder
++to look at the one that is right.
++
++Neither case is about a bad ref, which the script already refuses well: they
++are about a command line the script never read. A reader that cannot say which
++flag it could not read is the part that has to change.
++
++## Acceptance criteria
++
++1. A flag given twice refuses: `--base main --base no-such-ref` exits 2 and the
++   message names `--base`, rather than measuring from `main`.
++2. That refusal happens for `--head` as well as `--base`, and it happens
++   whether or not either value names a commit, because the command line is
++   wrong before any ref is resolved.
++3. A repeated flag prints no size line: nothing that reads as a measurement
++   reaches a builder who asked for a range twice.
++4. A flag with no value refuses and names that flag: `--base main --head` exits
++   2 with a message carrying `--head`, and not the generic "pass --base and
++   --head", which names the flag that was passed correctly.
++5. The same holds for an empty value, `--base ''`, which is a value given and
++   not a flag omitted.
++6. The environment path is unchanged: `BASE_SHA` and `HEAD_SHA` with no
++   arguments measure the same range and print the same line, because that is
++   how the workflow invokes it.
++7. A correct command line is unchanged: `--base <ref> --head <ref>` prints the
++   same `hand-written N of 400` line and exits on the same rule as before.
++8. Fails closed: when any input, file, tool or service the change depends on is
++   missing, malformed or errors, the change refuses or exits non-zero and says
++   why; it never reports success on an unread input.
++
++## Build brief
++
++Files: `scripts/pr-size.mjs`, the argument reader in front of the environment
++it already reads, and nothing else. No workflow, no other script.
++
++Size estimate: under 50 hand-written lines.
+diff --git a/tests/acceptance/16-pr-size-flags/pr-size-flags.test.ts b/tests/acceptance/16-pr-size-flags/pr-size-flags.test.ts
+new file mode 100644
+index 0000000..d7c3fd1
+--- /dev/null
++++ b/tests/acceptance/16-pr-size-flags/pr-size-flags.test.ts
+@@ -0,0 +1,133 @@
++// SPDX-License-Identifier: AGPL-3.0-only
++// Ticket 16, committed before the code.
++//
++// The command line is read off a real run of the script against a real
++// repository, because the thing under test is what a builder sees in a
++// terminal before a push. Every case runs with no CI environment set: the
++// defect is that a malformed flag falls through to `BASE_SHA` and `HEAD_SHA`,
++// and a test that sets them cannot see it fall.
++import { spawnSync } from 'node:child_process';
++import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
++import { tmpdir } from 'node:os';
++import { join, resolve } from 'node:path';
++import { afterAll, describe, expect, test } from 'vitest';
++
++const root = resolve(import.meta.dirname, '../../..');
++
++const temporary: string[] = [];
++afterAll(() => {
++  for (const dir of temporary) rmSync(dir, { force: true, recursive: true });
++});
++
++const git = (dir: string, args: string[]): void => {
++  const run = spawnSync('git', args, { cwd: dir, encoding: 'utf8' });
++  expect(run.status, `${run.stdout ?? ''}${run.stderr ?? ''}`).toBe(0);
++};
++
++/** A repository with `main` at a seed and `feature` one commit of `count` lines on. */
++function branchRepo(count: number): string {
++  const dir = mkdtempSync(join(tmpdir(), 'pr-size-flags-'));
++  temporary.push(dir);
++  git(dir, ['init', '-q', '-b', 'main']);
++  git(dir, ['config', 'user.name', 'Flag Test']);
++  git(dir, ['config', 'user.email', 'flag-test@example.invalid']);
++  git(dir, ['config', 'commit.gpgsign', 'false']);
++  writeFileSync(join(dir, 'seed.txt'), 'seed\n');
++  git(dir, ['add', 'seed.txt']);
++  git(dir, ['commit', '-qm', 'seed']);
++  git(dir, ['checkout', '-q', '-b', 'feature']);
++  const body = Array.from({ length: count }, (_, line) => `line ${line}`).join('\n');
++  writeFileSync(join(dir, 'step.ts'), `${body}\n`);
++  git(dir, ['add', '-A']);
++  git(dir, ['commit', '-qm', 'feat: step']);
++  return dir;
++}
++
++/** The script, with the environment a terminal has and nothing a runner sets. */
++function sizer(
++  dir: string,
++  args: string[],
++  extra: Record<string, string> = {},
++): { status: number; output: string } {
++  const run = spawnSync(process.execPath, [resolve(root, 'scripts/pr-size.mjs'), ...args], {
++    cwd: dir,
++    encoding: 'utf8',
++    env: { PATH: process.env['PATH'] ?? '', HOME: process.env['HOME'] ?? '', ...extra },
++  });
++  return { status: run.status ?? -1, output: `${run.stdout ?? ''}${run.stderr ?? ''}` };
++}
++
++const SIZE_LINE = /hand-written \d+ of 400/u;
++
++describe('a flag given twice is a refusal, not a first occurrence', () => {
++  test('--base twice names --base and exits 2', () => {
++    const answer = sizer(branchRepo(50), ['--base', 'main', '--base', 'no-such-ref']);
++    expect(answer.output).toContain('--base');
++    expect(answer.status).toBe(2);
++  });
++
++  test('--head twice names --head and exits 2', () => {
++    const answer = sizer(branchRepo(50), ['--base', 'main', '--head', 'HEAD', '--head', 'main']);
++    expect(answer.output).toContain('--head');
++    expect(answer.status).toBe(2);
++  });
++
++  test('two commits that both resolve are still a refusal', () => {
++    const answer = sizer(branchRepo(50), ['--base', 'main', '--base', 'main', '--head', 'HEAD']);
++    expect(answer.status).toBe(2);
++  });
++
++  test('a repeated flag prints nothing that reads as a measurement', () => {
++    const answer = sizer(branchRepo(50), ['--base', 'main', '--base', 'no-such-ref']);
++    expect(answer.output).not.toMatch(SIZE_LINE);
++    expect(answer.output).not.toContain('within the rule');
++  });
++});
++
++describe('a flag with no value names that flag', () => {
++  test('--head last with no value is about --head, not about both', () => {
++    const answer = sizer(branchRepo(50), ['--base', 'main', '--head']);
++    expect(answer.output).toContain('--head');
++    expect(answer.output).not.toContain('pass --base and --head');
++    expect(answer.status).toBe(2);
++  });
++
++  test('--base last with no value is about --base', () => {
++    const answer = sizer(branchRepo(50), ['--head', 'HEAD', '--base']);
++    expect(answer.output).toContain('--base');
++    expect(answer.output).not.toContain('pass --base and --head');
++    expect(answer.status).toBe(2);
++  });
++
++  test('an empty value is a value given, not a flag omitted', () => {
++    const dir = branchRepo(50);
++    const rev = (ref: string): string =>
++      spawnSync('git', ['rev-parse', ref], { cwd: dir, encoding: 'utf8' }).stdout.trim();
++    const answer = sizer(dir, ['--base', '', '--head', 'HEAD'], { BASE_SHA: rev('main') });
++    expect(answer.output).toContain('--base');
++    expect(answer.status).toBe(2);
++  });
++});
++
++describe('the paths that already worked still work', () => {
++  test('one --base and one --head measure the range', () => {
++    const answer = sizer(branchRepo(50), ['--base', 'main', '--head', 'HEAD']);
++    expect(answer.output).toMatch(/hand-written 50 of 400/u);
++    expect(answer.status).toBe(0);
++  });
++
++  test('no arguments still reads BASE_SHA and HEAD_SHA', () => {
++    const dir = branchRepo(50);
++    const rev = (ref: string): string =>
++      spawnSync('git', ['rev-parse', ref], { cwd: dir, encoding: 'utf8' }).stdout.trim();
++    const answer = sizer(dir, [], { BASE_SHA: rev('main'), HEAD_SHA: rev('HEAD') });
++    expect(answer.output).toMatch(/hand-written 50 of 400/u);
++    expect(answer.status).toBe(0);
++  });
++
++  test('neither flag nor environment is still the generic message', () => {
++    const answer = sizer(branchRepo(50), []);
++    expect(answer.output).toContain('pass --base and --head');
++    expect(answer.status).toBe(2);
++  });
++});
+
+===== Your instructions =====
+You are Sol, the reviewer of record. Two questions. One: are the plan's tests faithful to the criteria and non-tautological? Two: does this diff break any numbered criterion in plan.md, or do something other than what plan.md says it is for? Run the tests and the checks. Post one review with `gh pr review 17 --comment --body` whose body begins with these four lines exactly: `Reviewer: Sol (Codex)`, `Model: gpt-5.6-sol`, `Head SHA: 36693cbb4ce2a8b9756e052f6c134d16eed8fe9d`, `Verdict: approve` or `Verdict: changes requested`. A finding that holds the pull request is written `Criterion: <n>` on its own line, then `file:line` and one sentence. Anything else you notice goes under a line `Notes:` as `file:line` and one sentence, and does not hold. `Verdict: changes requested` only when at least one Criterion finding exists. Post nothing else. Do not fix anything.

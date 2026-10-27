@@ -1,0 +1,12 @@
+# Code owners for this repository.
+#
+# One maintainer owns everything. GOVERNANCE.md is honest about what that
+# means: the bus factor is one, and no successor is named.
+#
+# When a second maintainer exists, this file gains real rows and stops being
+# a single line.
+#
+# <OWNER-HANDLE> is a placeholder. Replace it with the GitHub handle that owns
+# the copied project, or every review request routes to somebody outside it.
+
+* @<OWNER-HANDLE>

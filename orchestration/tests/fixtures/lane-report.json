@@ -1,0 +1,20 @@
+{
+  "now": "2026-10-14T01:00:00Z",
+  "inventory": [
+    {
+      "id": "EXAMPLE-BUILD",
+      "machine": "M4",
+      "pane": "wQ1A:p1",
+      "workOwed": true,
+      "lastProgressAt": "2026-10-14T00:59:00Z"
+    }
+  ],
+  "panes": {
+    "M4/wQ1A:p1": {
+      "status": "working",
+      "text": "Building the synthetic example."
+    }
+  },
+  "loaded": ["qwen3.6:35b-mlx"],
+  "replies": [{ "status": "fine", "reason": "recent-progress" }]
+}
