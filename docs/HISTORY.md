@@ -167,59 +167,59 @@ be checked against it. A rule on this list comes back only through
 
 | # | What was tried | Why it went, or what replaced it | Evidence |
 | --- | --- | --- | --- |
-| 1 | Long prose briefs on a common file | Long instructions buried the required steps; short self-contained briefs | [above](#from-long-prompts-to-short-briefs) |
-| 2 | Copilot review on every push, as a gate | Not reliably available, and it held merges on ticked threads, not sound code | [above](#copilots-place-in-the-chain-and-why-it-left) |
-| 3 | The per-stage first-kit pipeline | Too heavy at every stage; its checks moved to the product's repository | [above](#build-speeds-before-trunk) |
-| 4 | Many Sol rounds per pull request | Too slow; see 13 | WHAT-WORKED |
-| 5 | The 400-line pull request gate | Nearly every fix needed a waiver; a guide, then [800 lines](METHOD.md#pull-request-size) | LESSONS, CI-CHECKS |
-| 6 | A per-file cap with no waiver; moves counted as new | No way through for real work; moves are measured as moves | LESSONS |
-| 7 | Strict "up to date" | A rebase and full test run on every move of `main`; dropped where a merge queue tests the combined head. It stays on for a private repo with no queue and no tree-binding landing tool ([SINGLE.md](SINGLE.md#small-pull-requests-merged-as-they-go)) | LESSONS |
-| 8 | CI sharding for speed | Dropped for token cost, then brought back as CI-only shards | LESSONS, SKILL-WATCH |
-| 9 | Fast: land on green, Sol after | Did not hold | [above](#build-speeds-before-trunk) |
-| 10 | Medium: slices, batch cuts, batch-end reviews | Slice pull requests too big for a later agent to read; trunk | [above](#build-speeds-before-trunk) |
-| 11 | Three-tier model trial | Held for research; never ran | WHAT-WORKED |
-| 12 | Minimal reviews until Sol had room | A stopgap; owed reviews grew and none cleared | WHAT-WORKED |
-| 13 | Three-round cap | Too many pieces held at round three; two rounds, then split or a director read ([Review rounds](METHOD.md#review-rounds)). Single mode's high rank keeps 3 | SKILL-WATCH |
-| 14 | Seat stops moved within the week | Changing stops left the build idle with work waiting; per-seat caps set by the owner | WHAT-WORKED |
-| 15 | Heavy work split evenly across two machines | Work all went to one machine; heavy runs go to the check machine | WHAT-WORKED |
+| 1 | Long prose briefs on a common file | Short self-contained briefs | [above](#from-long-prompts-to-short-briefs) |
+| 2 | Copilot review on every push, as a gate | Sol is the reviewer of record, and no reviewer is a gate | [above](#copilots-place-in-the-chain-and-why-it-left) |
+| 3 | The per-stage first-kit pipeline | Its checks moved to the product's repository | [above](#build-speeds-before-trunk) |
+| 4 | Many Sol rounds per pull request | Two rounds; see 13 | WHAT-WORKED |
+| 5 | The 400-line pull request gate | A guide, then [800 lines](METHOD.md#pull-request-size) | LESSONS, CI-CHECKS |
+| 6 | A per-file cap with no waiver; moves counted as new | Moves are measured as moves | LESSONS |
+| 7 | Strict "up to date" | Dropped where a merge queue tests the combined head. It stays on for a private repo with no queue and no tree-binding landing tool ([SINGLE.md](SINGLE.md#small-pull-requests-merged-as-they-go)) | LESSONS |
+| 8 | CI sharding for speed | CI-only shards | LESSONS, SKILL-WATCH |
+| 9 | Fast: land on green, Sol after | Trunk, with each piece reviewed before it merges | [above](#build-speeds-before-trunk) |
+| 10 | Medium: slices, batch cuts, batch-end reviews | Trunk | [above](#build-speeds-before-trunk) |
+| 11 | Three-tier model trial | Held for research | WHAT-WORKED |
+| 12 | Minimal reviews until Sol had room | Replaced by review before merge | WHAT-WORKED |
+| 13 | Three-round cap | Two rounds, then split or a director read ([Review rounds](METHOD.md#review-rounds)). Single mode's high rank keeps 3 | SKILL-WATCH |
+| 14 | Seat stops moved within the week | Per-seat caps set by the owner | WHAT-WORKED |
+| 15 | Heavy work split evenly across two machines | Heavy runs go to the check machine | WHAT-WORKED |
 | 16 | Self-hosted runner on a public repo | An outside pull request could run code on it; hosted runners ([METHOD.md](METHOD.md#where-the-full-tests-run)) | WHAT-WORKED, SKILL-WATCH |
-| 17 | Orchestrator handover at 30 percent | Handovers came too often; now 45 / 50 / 70 ([context](METHOD.md#seats-lanes-and-stops)) | WHAT-WORKED |
+| 17 | Orchestrator handover at 30 percent | Now 45 / 50 / 70 ([context](METHOD.md#seats-lanes-and-stops)) | WHAT-WORKED |
 | 18 | Sol's proof applied unchanged, then a fresh Opus writing it | The lane writes the test from Sol's scenario | [above](#cut-to-the-fleet-model) |
-| 19 | One unit per orchestrator turn | Owed work sat idle until a nudge | WHAT-WORKED |
-| 20 | Director lines typed into busy panes | Lines were lost at handovers; files, with pointers in panes | WHAT-WORKED |
-| 21 | Custody proofs at every close | Paperwork that caught nothing; production secrets only | WHAT-WORKED |
-| 22 | Codex orchestrator on a large-context profile, late handover | Poorer orchestration; Opus orchestrates, with the usual handover points | WHAT-WORKED |
+| 19 | One unit per orchestrator turn | Owed units run back to back | WHAT-WORKED |
+| 20 | Director lines typed into busy panes | Files, with pointers in panes | WHAT-WORKED |
+| 21 | Custody proofs at every close | Production secrets only | WHAT-WORKED |
+| 22 | Codex orchestrator on a large-context profile, late handover | Opus orchestrates, with the usual handover points | WHAT-WORKED |
 | 23 | Temporary model split, FIX-DIFF-READ, SIMPLE or OPUS tags | Temporary by design; tags renamed ordinary or sensitive | [above](#cut-to-the-fleet-model) |
 | 24 | Orchestrator as the one integrator; enqueue by it; ORCH-DECISION | The lane owns its piece to merged; the merge script merges | [above](#cut-to-the-fleet-model) |
-| 25 | Director over orchestrator over lanes; lanes stop and report | Returns sat unread; [FLEET.md](FLEET.md#roles) | WHAT-WORKED |
+| 25 | Director over orchestrator over lanes; lanes stop and report | Lanes own their piece to merge ([FLEET.md](FLEET.md#roles)) | WHAT-WORKED |
 | 26 | Setting aside the cross-model rule | Reversed: Claude builds, Sol only reviews ([models](FLEET.md#models)) | [above](#cut-to-the-fleet-model) |
 | 27 | Race attack as a separate gate | Kept as the lane's own test work | [above](#cut-to-the-fleet-model) |
-| 28 | Handback files, close acknowledgements, wrap-up documents | Paperwork; the three PR lines and `close-out` ([FLEET.md](FLEET.md#paperwork-four-things-per-agent-nothing-else)) | WHAT-WORKED |
+| 28 | Handback files, close acknowledgements, wrap-up documents | The three PR lines and `close-out` ([FLEET.md](FLEET.md#paperwork-four-things-per-agent-nothing-else)) | WHAT-WORKED |
 | 29 | Core-then-chunks; phase-end sweep; blind pair on plans and stages | Trunk; the pair is retired (see 58) | [above](#the-blind-pair-retired) |
 | 30 | A fixed percentage seat stop | The owner's per-seat caps | [above](#cut-to-the-fleet-model) |
 | 31 | Condense passes | Fixes stay small instead | [above](#cut-to-the-fleet-model) |
 | 32 | The fork-versus-fresh measure; PARKED lines | Sub-agents start fresh; milestone lines only | [above](#cut-to-the-fleet-model) |
 | 33 | Proof runs tied to one machine; an error tracker's quota | Detail of one setup | [above](#cut-to-the-fleet-model) |
-| 34 | The lean core (`LEAN.md`, `docs/lean/`) | Didn't work well enough; full or single mode | [above](#two-modes-and-the-lean-core-retired) |
+| 34 | The lean core (`LEAN.md`, `docs/lean/`) | Full or single mode | [above](#two-modes-and-the-lean-core-retired) |
 | 35 | A frozen custom runner for switch-ons | Use the app's own tools; rehearse writes and preserve a restoration copy | WHAT-WORKED |
-| 36 | Wrap-up on the PR | Drifts from the code; `Why`, `Left undone`, `Closes` | WHAT-WORKED |
-| 37 | Merge scripts and round tools copied per orchestrator | Copies multiplied unreviewed; the one merge script | WHAT-WORKED |
+| 36 | Wrap-up on the PR | `Why`, `Left undone`, `Closes` | WHAT-WORKED |
+| 37 | Merge scripts and round tools copied per orchestrator | The one merge script | WHAT-WORKED |
 | 38 | `queue-keeper.sh`, `queue-watch.sh` | Replaced by the merge script | WHAT-WORKED |
-| 39 | Re-review of every new head, no carry | Every move of `main` staled every waiting PR; [carried approvals](METHOD.md#building-on-main), item 6. Approval stays bound to the exact head | WHAT-WORKED |
-| 40 | A timed pre-check fallback | Let PRs in unchecked; no fallback ([METHOD.md](METHOD.md#the-merge-pipeline)) | SKILL-WATCH |
+| 39 | Re-review of every new head, no carry | [Carried approvals](METHOD.md#building-on-main), item 6. Approval stays bound to the exact head | WHAT-WORKED |
+| 40 | A timed pre-check fallback | No fallback ([METHOD.md](METHOD.md#the-merge-pipeline)) | SKILL-WATCH |
 | 41 | Per-PR GitHub polling loops | One shared reader ([METHOD.md](METHOD.md#the-merge-pipeline)) | SKILL-WATCH |
-| 42 | Fixed concurrency caps ("at most 2 at once", a 2-slot cap, a fixed load limit) | Lanes waited while another machine sat idle; capacity read by machine ([METHOD.md](METHOD.md#the-merge-pipeline)) | SKILL-WATCH |
-| 43 | Pre-check batches of 6 | One red held the rest; at most 3 ([METHOD.md](METHOD.md#the-merge-pipeline)) | SKILL-WATCH |
-| 44 | Director hourly check; kick at 120 minutes | Too slow to catch stalls; validate stall alerts against configured thresholds, 30 and 45 minutes | SKILL-WATCH |
-| 45 | Train-enqueue of stacks | Stacks barely merged; top-carry or serial | none |
+| 42 | Fixed concurrency caps ("at most 2 at once", a 2-slot cap, a fixed load limit) | Capacity read by machine ([METHOD.md](METHOD.md#the-merge-pipeline)) | SKILL-WATCH |
+| 43 | Pre-check batches of 6 | At most 3 ([METHOD.md](METHOD.md#the-merge-pipeline)) | SKILL-WATCH |
+| 44 | Director hourly check; kick at 120 minutes | Stall alerts at 30 and 45 minutes | SKILL-WATCH |
+| 45 | Train-enqueue of stacks | Top-carry or serial | none |
 | 46 | Speeds slow, medium and fast | [Build variants](METHOD.md#build-variants) | [above](#build-speeds-become-build-variants) |
-| 47 | Caps on open, ready or approved pull requests | Froze the opening of new pull requests; capacity caps only | [METHOD.md](METHOD.md#seats-lanes-and-stops) |
-| 48 | Stacked pull requests and restacks | Restacks cost repeated heads; no stack by default (hardened: two exceptions by top-carry; [production.md](variants/production.md#what-changes), [hardened](variants/hardened-production.md#production-learnings-adopted)) | production.md |
-| 49 | Sol re-reads of identical rebases | They found nothing; the carry | [METHOD.md](METHOD.md#building-on-main), item 6 |
-| 50 | Strict "up to date" (production, with a landing tool only) | Not yet proven; waits for a shadow-landing trial ([production.md](variants/production.md#what-changes), change 11) | production.md |
+| 47 | Caps on open, ready or approved pull requests | Capacity caps only | [METHOD.md](METHOD.md#seats-lanes-and-stops) |
+| 48 | Stacked pull requests and restacks | No stack by default (hardened: two exceptions by top-carry; [production.md](variants/production.md#what-changes), [hardened](variants/hardened-production.md#production-learnings-adopted)) | production.md |
+| 49 | Sol re-reads of identical rebases | The carry | [METHOD.md](METHOD.md#building-on-main), item 6 |
+| 50 | Strict "up to date" (production, with a landing tool only) | Waits for a shadow-landing trial ([production.md](variants/production.md#what-changes), change 11) | production.md |
 | 51 | Sol effort medium, then high, then by risk | [SOL-EFFORT.md](SOL-EFFORT.md) | CI-CHECKS |
 | 52 | Two Sol slots kept for sweeps | Pull request rounds first | CI-CHECKS |
-| 53 | Queue width 5, back to 3 | A wider queue added nothing; width by runner slots | WHAT-WORKED |
+| 53 | Queue width 5, back to 3 | Width by runner slots | WHAT-WORKED |
 | 54 | Postgres 18 look-ahead on the merge path | Slow optional jobs run nightly | CI-CHECKS |
 | 55 | Lean `RULES` file and tunables file | Went with the lean core | git history |
 | 56 | Owner holds on every review ceiling | Routine reds never wait on the owner; [the ladder](METHOD.md#review-rounds) | SKILL-PROPOSALS |

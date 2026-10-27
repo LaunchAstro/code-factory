@@ -1,9 +1,8 @@
 # Set up a machine to run one round
 
-Most of this page sets up a machine for the first round kit, now archived,
-and stays as reference. Only [Sign your commits](#sign-your-commits) applies
-to every machine that pushes to a repository whose ruleset requires signed
-commits. Seats boot with the `claude-subscription-switch` skill's
+Most of this page is archived. Signing remains required for every machine
+that pushes to a LaunchAstro repository ([Sign your commits](#sign-your-commits)).
+Seats boot with the `claude-subscription-switch` skill's
 `claude-seat-up`, and a build starts from [METHOD.md](METHOD.md).
 
 Eleven things have to be installed and signed in before a round starts. Each line
@@ -65,8 +64,8 @@ the run, so read the last two lines of the output, not just the exit code.
 
 *Current.*
 
-The ruleset requires signed commits, so a fresh machine sets signing up before
-its first push. SSH signing needs no new key:
+Every machine that pushes to a LaunchAstro repository signs its commits, so a
+fresh machine sets signing up before its first push. SSH signing needs no new key:
 
     git config --global gpg.format ssh
     git config --global user.signingkey ~/.ssh/id_ed25519.pub

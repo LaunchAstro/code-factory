@@ -18,7 +18,7 @@ Whoever starts the work says which shape it is.
 2. Start its own fresh Sol review, fix what the review finds, and re-review, until Sol approves the exact head ([Review rounds](METHOD.md#review-rounds) sets the rounds and the ladder at the cap).
 3. Run the checks and the one-off record step.
 4. Write the three description lines (below), and mark the PR ready.
-5. Wait cheaply (a script waits, not the agent) until the PR merges. If the queue drops it, fix it and mark it ready again.
+5. Invoke `enqueue.mjs` for the PR and exact head. After a drop, invoke it again; one re-queue is permitted, then it refuses. Supply `--pane` for lane notification.
 
 The lane fixes its own bugs, failing checks and review findings without asking. It passes something up for only four reasons:
 - it needs a permission, spend, or an owner-only step (a code, a login);
@@ -29,8 +29,8 @@ The lane fixes its own bugs, failing checks and review findings without asking. 
 **Orchestrator.** Keeps lanes filled to the seat caps, boots lanes with short briefs, unblocks and nudges stuck or looping lanes, and answers what it can. What it can't answer goes to the director. It never builds, diagnoses or investigates itself. Any job longer than a few minutes goes to a lane. Its turns stay short.
 
 **Merge script ("loading bay").** Merges, not an agent:
-- It picks up every PR marked ready and puts it in GitHub's merge queue. On a repository with no queue it merges the PR straight to `main` at its checked head ([enqueue.md](../orchestration/enqueue.md#with-no-merge-queue)).
-- On a drop it re-queues the PR once. On a second drop it hands the PR back to its lane.
+- The lane invokes `enqueue.mjs` for the PR and exact head, and the script puts it in GitHub's merge queue. Each invocation is one pass. On a repository with no queue it merges the PR straight to `main` at its checked head ([enqueue.md](../orchestration/enqueue.md#with-no-merge-queue)).
+- After a drop, the caller invokes it again; one re-queue is permitted, then it refuses and the PR is back with its lane. Supply `--pane` for lane notification.
 - The work map shows the bay from GitHub: ready, queued, merged and dropped, each with its reason.
 
 **Director.** Kept thin. It routes the owner's words to the right place: a lane, the orchestrator, the roadmap or an issue. It keeps the orchestrators and the merges moving, and makes the build more efficient. It reads diffs only for sign-in, money and data separation. It stays quiet while work moves.
@@ -77,7 +77,7 @@ For any operation that closes every pane. Jobs started with `nohup` survive a pa
    - `Closes #n` for each ticket the change finishes (GitHub closes it on merge), or `Closes: none`.
 
    Descriptions and tickets are pointers. When they disagree with the code, the code wins.
-   - **The price of the queue.** Before the loading bay queues a PR, the merge script checks for the three lines ([enqueue.md](../orchestration/enqueue.md#the-loading-bays-gates)). If any is missing or malformed, the PR stays out of the queue, and the script sends the owning lane's pane one line with the template. The lane is still open, waiting for its merge.
+   - **The price of the queue.** Before the loading bay queues a PR, the merge script checks for the three lines ([enqueue.md](../orchestration/enqueue.md#the-loading-bays-gates)). If any is missing or malformed, the PR stays out of the queue. With `--pane`, the script sends the owning lane's pane one line with the template. The lane fixes the description and invokes the script again.
    - **Automatic fallback.** When a session ends without a PR, or is closed suddenly, a script records only its branch and the tickets it touched.
    - **Visible gaps.** The work map marks any agent that closed without either. The orchestrator's close-down check sees the same mark.
 3. **Its finish.** An agent started to do a task (a lane, a worktree job, a dispatched task) finishes with the `close-out` skill. It:
