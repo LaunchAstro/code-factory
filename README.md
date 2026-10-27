@@ -1,134 +1,155 @@
 # Code Factory
 
-Code Factory is Launch Astro's method for building a large product with agent
-lanes for an owner who is not a programmer: each piece built test-first,
-reviewed by Sol until it approves the exact head, and landed on `main` through
-the merge script. [HISTORY.md](docs/HISTORY.md) says how it got here.
+Code Factory is a way to build the software you want with AI coding agents
+and have it come out as solid as possible. You say what you want built.
+Agents plan it, build it in small pieces and land each piece on `main` only
+after it clears three checks:
 
-## Start here
+- **Tests first.** Each piece starts from a failing test that proves what the
+  ticket asks for, then the code that makes it pass.
+- **An independent review.** A model from a different company than the
+  builder's (Sol) reviews every change and keeps sending it back until it
+  approves the exact commit that will merge.
+- **The merge gate.** A script, not an agent, merges. It takes a pull request
+  only when every required check is green on the exact head and the
+  description carries its three lines.
 
-- [docs/METHOD.md](docs/METHOD.md): the method, from
-  [before the build](docs/METHOD.md#before-the-build-plan-deep) to the
-  hand-off rule. Full mode (a director, an orchestrator and lanes) is METHOD
-  with [docs/FLEET.md](docs/FLEET.md), which sets the roles, review and
-  paperwork.
-- [docs/SINGLE.md](docs/SINGLE.md): single mode, one agent owning one area.
-- The build variants, one per build:
-  [hardened production](docs/variants/hardened-production.md) (the default),
-  [production](docs/variants/production.md) and
-  [prototype](docs/variants/prototype.md).
-- [docs/SOL-EFFORT.md](docs/SOL-EFFORT.md): Sol's review effort by risk.
-- [skills/](skills/README.md): the skills that run a round (orchestrator,
-  director, build-review and the rest), with links to the pstack and Matt
-  Pocock skills they load.
-- [docs/CI-CHECKS.md](docs/CI-CHECKS.md): what each check guards, costs and
-  catches.
-- [docs/agents/issue-tracker.md](docs/agents/issue-tracker.md): tickets, the
-  `Section:` line and the work map.
-- [orchestration/README.md](orchestration/README.md): the current tools (the
-  merge script, pre-checks, watchers, single mode's hand-off, the reviewer
-  shim).
+You don't need to be a programmer to drive it. Those three checks are what
+make the result solid, whoever is driving.
 
-Also current: [docs/CHECKLIST.md](docs/CHECKLIST.md), what every builder
-checks before asking for review. Records: [docs/LESSONS-2026-09.md](docs/LESSONS-2026-09.md),
-[docs/WHAT-WORKED.md](docs/WHAT-WORKED.md) and `docs/rounds/`. Proposals
-waiting on evidence: [docs/SKILL-PROPOSALS.md](docs/SKILL-PROPOSALS.md) and
-[docs/SKILL-WATCH.md](docs/SKILL-WATCH.md). The method changes only through
-the owner: [how this changes](docs/FLEET.md#how-this-changes). Designs waiting on the owner, such as the agent access survey (`docs/design/agent-access.md`), stay private.
+This repository holds the method (`docs/`), the skills agents load to run it
+(`skills/`), the scripts behind it (`orchestration/`) and a repository
+template a new project copies (`template/`).
 
-## Archived: the first kit (17 to 21 September)
+## How it works
 
-**A record, not the current method.** Everything below this line is the first
-version: a repository template whose hosted checks take a ticket to a merged
-pull request with no hand on CI, and an orchestration kit that ran briefed
-lanes through seven stages against numeric ceilings. Its per-stage pipeline
-was judged too heavy and retired; METHOD replaced it. The stages, ceilings,
-briefs and hold rules below bound only the seven recorded rounds. The
-reusable part is `template/`, copied as "Start a project" says. The
-first kit's stages, briefs, boot file and `factory.sh`, all under
-`orchestration/archive/`, are reference only; the current tools in
-`orchestration/` are live
-([orchestration/README.md](orchestration/README.md)).
+### Two modes
 
-A frontier model from a different company than the builder's is the reviewer
-of record, and its verdict turns a required check red or green with nobody
-reading the diff. A machine that has never run a round starts at
-[docs/SETUP.md](docs/SETUP.md).
+- **Single mode.** One agent owns one area of a repository and lands its work
+  as a run of small pull requests. Use it for one feature or a switch-on.
+  [docs/SINGLE.md](docs/SINGLE.md)
+- **Full mode.** A director, an orchestrator and lanes, for a big build with
+  many pieces running side by side. [docs/FLEET.md](docs/FLEET.md) sets the
+  roles and [docs/METHOD.md](docs/METHOD.md) the build mechanics.
 
-Seven rounds is the whole record, not a clean one. Rounds 1 to 3 are where it
-was found wanting, round 2 at zero merges and round 3 a FAIL that merged a
-planted defect; rounds 4 to 7 each passed the line below, and
-`docs/rounds/README.md` scores every one of them.
+### The roles in full mode
 
-`template/.github/` is source to copy into a project. Its workflows run from
-the copied project's repository root, not here. The checks ran, and are evidenced, on the rehearsal repository
-the rounds used.
+- **The owner** is the person the software is for. They say what to build,
+  answer product questions and give what only they can give (a login, spend,
+  a yes to a public change). Routine build questions never reach them.
+- **The director** is one long-lived session beside the owner. It routes the
+  owner's words to the right place and keeps orchestrators and merges moving.
+- **The orchestrator** keeps lanes filled, boots each with a short brief and
+  unblocks stuck ones. It never builds.
+- **A lane** is an agent that owns one piece until it has merged.
+- **The merge script** queues ready pull requests and merges them.
+- **Sol** is the reviewer of record. It reviews and never writes product code.
 
-### The pass line
+### A piece's path to `main`
 
-Round 7 is the standard a round is scored against. All seven must hold:
+1. **Plan.** Before the build, the work is mapped into tickets. Each carries
+   a `Section:` line and numbered criteria
+   ([issue tracker](docs/agents/issue-tracker.md),
+   [before the build](docs/METHOD.md#before-the-build-plan-deep)).
+2. **Build test-first.** The lane writes the failing test, then the code, and
+   checks its work against [docs/CHECKLIST.md](docs/CHECKLIST.md).
+3. **Review.** The lane starts Sol on the pull request, fixes what Sol finds
+   and asks again, until Sol approves the exact head. Rounds are capped. At the
+   cap the piece splits or goes to the director
+   ([review rounds](docs/METHOD.md#review-rounds)). Sol's effort follows the
+   change's risk ([docs/SOL-EFFORT.md](docs/SOL-EFFORT.md)).
+4. **Checks.** A pull request runs the fast checks and the tests its change
+   touches. The merge queue runs the full set on the exact combined head.
+   Heavy local runs (full checks, browser tests, builds) go to a separate
+   check machine, so the machine the owner works on stays free
+   ([where the full tests run](docs/METHOD.md#where-the-full-tests-run)).
+5. **Describe.** The pull request carries three lines: `**Why:**`,
+   `**Left undone:**` (follow-up tickets, or `none`) and `Closes #n`
+   ([paperwork](docs/FLEET.md#paperwork-four-things-per-agent-nothing-else)).
+6. **Merge.** The lane marks the pull request ready. The merge script checks
+   the three lines and puts it in GitHub's merge queue, which merges it when
+   every required check passes. A dropped pull request is re-queued once,
+   then handed back to its lane
+   ([the merge pipeline](docs/METHOD.md#the-merge-pipeline)).
 
-1. Every pull request reaches its decision with no hand on CI: no rerun, no
-   update-branch, no admin merge, no owner decision.
-2. Every hold cites a `Criterion:` finding that reproduces against the module at
-   that head. A hold on a finding that does not reproduce is a false hold, and a
-   fail.
-3. Every merged pull request leaves `main` green, and the ticket's own
-   reproduction no longer reproduces.
-4. The reviewer stays inside the REVIEW row's session ceilings, per pull
-   request and over the run.
-5. A reviewer-approved fix head merges on its own, or the round says the
-   condition was not exercised.
-6. An over-engineering sweep of every merged diff against its plan: a knob
-   nothing sets, a case proving the same line twice, an abstraction with one
-   caller, a stub for a later stage, error handling for an impossible state.
-   Hits are a finding, not a fail.
-7. A fresh agent can answer, from the repository alone, where the size rule
-   lives, where the review of record is parsed, and where a new ticket's plan
-   goes.
+### Build variants
 
-`docs/rounds/ROUND7-REPORT.md` is the worked example of scoring it.
+Each build picks one at the start, and it sets how strict the rules are:
+[hardened production](docs/variants/hardened-production.md) (the default, for
+code a defect in could reach the public),
+[production](docs/variants/production.md) (private code for the owner's own
+team, on real data) and [prototype](docs/variants/prototype.md) (throwaway
+code on sample data, no Sol).
 
-### Start a project
+## Where to start
+
+Read in this order. An agent new to the repository needs steps 1 to 4 before
+it touches a build; the rest is reference for when a step names it.
+
+1. This README.
+2. [docs/METHOD.md](docs/METHOD.md) for full mode, or
+   [docs/SINGLE.md](docs/SINGLE.md) for single mode.
+3. [docs/FLEET.md](docs/FLEET.md): the roles, review and paperwork in full
+   mode.
+4. The variant page for your build, under [docs/variants/](docs/variants/).
+5. [docs/CHECKLIST.md](docs/CHECKLIST.md): what every builder checks before
+   asking for review.
+6. [docs/agents/issue-tracker.md](docs/agents/issue-tracker.md): tickets, the
+   `Section:` line and the work map.
+7. [skills/README.md](skills/README.md): the skill for your role (director,
+   orchestrator, build-review, single-agent and the rest).
+8. [orchestration/README.md](orchestration/README.md): the scripts, when a
+   step names one.
+
+Reference: [docs/SOL-EFFORT.md](docs/SOL-EFFORT.md) (review effort by risk),
+[docs/CI-CHECKS.md](docs/CI-CHECKS.md) (what each check guards and costs),
+[docs/TOOLS.md](docs/TOOLS.md) (the round tools),
+[docs/SETUP.md](docs/SETUP.md) (setting up a machine) and
+[template/README.md](template/README.md) (the project template).
+
+## Start a project
 
 1. Copy the whole of `template/` to the new repository's root, dotfiles
-   included. "Copy `template/`" is the instruction; the names are only a guide,
-   because the check reads more than the obvious ones. As well as `AGENTS.md`,
-   `CONTRIBUTING.md`, `.github/`, `scripts/`, `tests/`, `docs/`, `package.json`
-   and the lockfile, it reads `.claude/skills/`, `.husky/` (`prepare: husky`),
-   `.nvmrc` (`scripts/node-policy-check.mjs` compares it to `engines.node`),
-   the lint, format, TypeScript, vitest and commitlint configs at the root, and
-   the root policy files `template/README.md` links. The root must be a git
-   repository with at least one commit before the check runs: the commit
-   message cases call the hook, and the hook calls git.
-2. `corepack pnpm install && corepack pnpm check`. Green is the starting line.
-
-   The `inventory:fresh` step in that run regenerates `template/docs/INVENTORY.md`
-   from the tree and fails on a diff, so the page every build lane reads first
-   cannot go stale. Run `corepack pnpm inventory` and commit the result.
-3. Set the branch ruleset's required checks to the eight contexts in
+   included. The check reads more than the obvious files: `.claude/skills/`,
+   `.husky/`, `.nvmrc`, the root configs and the policy files
+   `template/README.md` links. The root must be a git repository with at
+   least one commit first, because the commit-message cases call the hook.
+2. Run `corepack pnpm install && corepack pnpm check`. Green is the starting
+   line. Its `inventory:fresh` step fails when `docs/INVENTORY.md` is stale;
+   run `corepack pnpm inventory` and commit the result.
+3. Set the branch ruleset's required checks to the contexts in
    `.github/required-contexts.json`, with the rest of the ruleset as
-   `template/docs/plan/ruleset.md` describes. `scripts/required-contexts-check.mjs`
-   refuses a tree whose record and workflows disagree, but nothing can prove
-   what the ruleset actually requires, so set it by hand and check it.
+   `template/docs/plan/ruleset.md` describes. Nothing can prove what the
+   ruleset requires, so set it by hand and check it.
 4. Add the reviewer's account as a collaborator, so its review posts under an
-   identity that is not the builder's. A reviewer posting from the builder's
-   account can edit its own refusal into an approval.
-5. Read `template/tests/acceptance/README.md` and the one worked example in
-   `10-label-trigger/` before writing a plan.
+   identity that is not the builder's
+   ([orchestration/reviewer/README.md](orchestration/reviewer/README.md)).
+5. Read `template/tests/acceptance/README.md` and its worked example before
+   writing a plan.
 
-### Run a round
+## Where things live
 
-`orchestration/archive/stages.json` is the one source for every number below.
-`node orchestration/archive/stages.mjs --render` rewrites the table from it, and
-`node orchestration/archive/stages.mjs --check` refuses what disagrees with it;
-`orchestration/README.md` says what it refuses. The briefs in
-`orchestration/archive/briefs/` are the templates to fill; the `brief` column says
-which.
+- `docs/`: the method and its reference pages.
+  [docs/HISTORY.md](docs/HISTORY.md) lists rules that were dropped and why;
+  check it before bringing one back.
+- `docs/rounds/`: the round records are private. Other files cite them by
+  file name as evidence ([docs/rounds/README.md](docs/rounds/README.md)).
+- `skills/`: the skills that run a build ([skills/README.md](skills/README.md)).
+- `orchestration/`: the merge script, pre-checks, watchers, the reviewer shim
+  and single mode's hand-off ([orchestration/README.md](orchestration/README.md)).
+- `template/`: the repository a new project copies.
 
-The skills that run a round are in [skills/](skills/README.md). This README is
-the authority for stage ceilings: the orchestrator skill carries no ceilings
-table of its own, so this file is the only source for the numbers here.
+## Licence
+
+Code Factory is AGPL-3.0-only; [LICENSE](LICENSE) has the full text and
+[NOTICE](NOTICE) records the third-party material under `template/`. The
+[preset and skill exception](LICENSE-EXCEPTIONS.md) is drafted and not yet
+granted. [CONTRIBUTING.md](CONTRIBUTING.md) says how to propose a change and
+[SECURITY.md](SECURITY.md) how to report a vulnerability.
+
+<details>
+<summary>Stage table of the first orchestration kit (kept here because
+<code>orchestration/archive/stages.mjs --check</code> reads it)</summary>
 
 <!-- stages:begin -->
 
@@ -144,75 +165,4 @@ table of its own, so this file is the only source for the numbers here.
 
 <!-- stages:end -->
 
-PLAN-CHECK and REVIEW count their wall per session; the other rows count it per
-lane. `orchestration/README.md` says what a row's `reviews` and
-`reviewsPerPullRequest` count.
-
-DE-SLOP cuts slop out of the build head on the same branch, so the review of
-record reads the de-slopped head rather than the head BUILD pushed. A fix head
-keeps de-slopping inline, in the fix lane's own step
-(`orchestration/archive/briefs/BRIEF-FIX-TEMPLATE.md` line 28).
-
-Decide is the orchestrator's: merge, one fix pass, or hold. It merges because a
-round is watched, and the runner is the overnight decider that takes Decide only
-once its merge step is written, which `template/scripts/runner/` does not yet
-carry.
-
-PLAN-CHECK is two halves of one stage. `template/scripts/plan-check.mjs`
-refuses five things a script can decide about a plan: the plan file is there,
-it carries the numbered criteria, one case per criterion, the size estimate is
-a number inside the gate, and the standing criterion is in the list. The
-session refuses what it cannot, whether those criteria cover the ticket's
-reproduction and its failure modes, in the `codebase-design` vocabulary. Both
-read the plan commit, before BUILD is dispatched.
-
-`template/scripts/runner/runner.json` carries one `minutes` entry this table
-does not, `plan`: the overnight runner's own planning session, which plans a
-ticket from nothing where PLAN-CHECK reads a plan commit a build lane has
-already pushed. It is not this stage and shares none of its ceilings, so
-`--check` holds `build`, `review` and `fix` against the table and leaves `plan`
-alone.
-
-In the rounds: Copilot 0, hands on CI 0, no spend. Reaching a ceiling ended
-the stage as a hold, never as a retry, and a held pull request was the owner's
-decision, recorded as an `## Owner decision` comment before anything moved.
-
-### Three rules out of round 7
-
-- **A brief is self-contained, under 600 words, and premise-checked against the
-  repository before dispatch.** Every lane that went off the rails was told to
-  do something the repository could not support and told not to ask.
-- **A fix adds no new precondition, and no regular expression over a token the
-  user controls.** Three passes on one pull request each closed a finding and
-  opened the next edge of the same regex. Plain string comparisons closed it.
-- **One `REVIEW` line at a time.** Nothing is pre-loaded for a stage that has
-  not started.
-
-## Where things live
-
-- `docs/`: the method ([Start here](#start-here)) and its records.
-  `docs/rounds/` holds every round report and ledger, the dated records of
-  18 September (the straight-line runner spec and the night audit), and the
-  first kit's moved records (STATE, SKILLS-BY-STAGE, FIRST-READ and the
-  5 October round tools catalogue).
-- `skills/`: a scrubbed snapshot of the Code Factory skills
-  ([skills/README.md](skills/README.md)).
-- `template/`: the repository to copy. Two of its check steps refuse what prose
-  only discouraged: `dup:check` refuses copied code and a duplicated script
-  name, `deps:check` refuses an unused dependency, an undeclared import and a
-  stale lockfile.
-- `orchestration/`: the current tools, and the archived round kit with its
-  placeholders ([orchestration/README.md](orchestration/README.md)).
-- `orchestration/reviewer/`: the codex shim, Sol's prompt renderer and rules
-  gate, and the README that says how to make the reviewer account's token
-  file under `$HOME` outside every clone.
-- `orchestration/seats/`: the first kit's copy of `claude-seat-up`. Seats boot
-  today with the `claude-subscription-switch` skill's launcher.
-
-## Licence
-
-Code Factory is AGPL-3.0-only; [LICENSE](LICENSE) has the full text and
-[NOTICE](NOTICE) records the third-party material under `template/`. The
-[preset and skill exception](LICENSE-EXCEPTIONS.md) is drafted and ungranted.
-[CONTRIBUTING.md](CONTRIBUTING.md) says how to propose a change and
-[SECURITY.md](SECURITY.md) how to report a vulnerability.
+</details>
