@@ -159,9 +159,12 @@ from each and under which licence.
   ([batch-cleanup](skills/batch-cleanup/SKILL.md)), and the fifteen standards
   skills the template carries.
 - [37signals' house-skills](https://github.com/basecamp/house-skills): the
-  trust gate from `address-pr-reviews`
+  trust gate from
+  [`address-pr-reviews`](https://github.com/basecamp/house-skills/tree/main/plugins/dev/skills/address-pr-reviews)
   ([orchestration/trust-gate/](orchestration/trust-gate/README.md)), and the
-  close gate from `ralph-lisa-loop` behind Sol's finding ids and disputes
+  close gate from
+  [`ralph-lisa-loop`](https://github.com/basecamp/house-skills/tree/main/plugins/dev/skills/ralph-lisa-loop)
+  behind Sol's finding ids and disputes
   ([the close gate](orchestration/reviewer/README.md#finding-ids-disputes-and-the-close-gate)).
 
 ## Licence
