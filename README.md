@@ -143,6 +143,30 @@ Reference: [docs/SOL-EFFORT.md](docs/SOL-EFFORT.md) (review effort by risk),
   and single mode's hand-off ([orchestration/README.md](orchestration/README.md)).
 - `template/`: the repository a new project copies.
 
+## Inspired by
+
+Three projects shaped Code Factory. [NOTICE](NOTICE) lists what is copied
+from each and under which licence.
+
+- [Matt Pocock's skills](https://github.com/mattpocock/skills): the planning
+  route, `wayfinder` then `to-spec` then `to-tickets`
+  ([before the build](docs/METHOD.md#before-the-build-plan-deep)), and the
+  twenty-five skills the template carries
+  ([template/.claude/skills/README.md](template/.claude/skills/README.md)).
+- [pstack](https://github.com/ericlitman/open-pstack), Lauren Tan's, with
+  parts from Cursor's team kit and Jesse Vincent's superpowers: the
+  thermonuclear, deslop and unslop cleanup passes
+  ([batch-cleanup](skills/batch-cleanup/SKILL.md)), and the fifteen standards
+  skills the template carries.
+- [37signals' house-skills](https://github.com/basecamp/house-skills): the
+  trust gate from
+  [`address-pr-reviews`](https://github.com/basecamp/house-skills/tree/main/plugins/dev/skills/address-pr-reviews)
+  ([orchestration/trust-gate/](orchestration/trust-gate/README.md)), and the
+  close gate from
+  [`ralph-lisa-loop`](https://github.com/basecamp/house-skills/tree/main/plugins/dev/skills/ralph-lisa-loop)
+  behind Sol's finding ids and disputes
+  ([the close gate](orchestration/reviewer/README.md#finding-ids-disputes-and-the-close-gate)).
+
 ## Licence
 
 Code Factory is AGPL-3.0-only; [LICENSE](LICENSE) has the full text and
