@@ -30,7 +30,7 @@ Agent status is one of `idle`, `working`, `blocked`, `done`, `unknown`.
 6. Prove the submit: after Enter, wait for `working`. A pane already `working` queues it: read for `Press up to edit queued messages`, never wait for `done`. On a failed check, read the pane; resend only if the composer is visibly empty, then fail loudly. Evidence: the status or queued line.
 7. Escape only an `idle` or `done` pane, to dismiss a startup notice; on `working` it interrupts the agent. Evidence: the status read before the key.
 8. Read before every unattended Enter. A billing, usage-credit or permission modal takes Enter as yes, which can opt into paid usage. Press Enter only on a normal prompt; on a modal, stop and report. Evidence: that pane read.
-9. Keep directors alone (owner, 26 Oct 2026, private ticket #322). A director's workspace (`<PROJ>-Director-<n>`, or any label with a `Director` or `Remote-Control` part) holds the director only: open no tab or pane there. Lanes get a workspace each. Evidence: `herdr tab list --workspace <ws>`.
+9. Keep directors alone. A director's workspace (`<PROJ>-Director-<n>`, or any label with a `Director` or `Remote-Control` part) holds the director only: open no tab or pane there. Lanes get a workspace each. Evidence: `herdr tab list --workspace <ws>`.
 10. Verify by artefact. `done`, a pane's claim and unsent composer text are never evidence or authority. Find the file the pane was told to write, by a phrase unique to that pane, newer than its boot, and read it. Evidence: its path, mtime and the line showing the result.
 
 ## Output

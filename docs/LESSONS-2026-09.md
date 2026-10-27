@@ -1,5 +1,7 @@
 # Lessons, September 2026
 
+*A record of how the method got here, kept as evidence for [HISTORY.md](HISTORY.md#dropped-and-why). You don't need it to run a build; start at the [reading order](../README.md#where-to-start).*
+
 What went wrong while building Ops Astro's core on 28 and 29 September 2026,
 and the rule each incident left in [METHOD.md](METHOD.md). One or two lines
 each.

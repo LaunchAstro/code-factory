@@ -1,5 +1,7 @@
 # Skill proposals
 
+*A record of how the method got here, kept as evidence for [HISTORY.md](HISTORY.md#dropped-and-why). You don't need it to run a build; start at the [reading order](../README.md#where-to-start).*
+
 Changes the method in [METHOD.md](METHOD.md) suggests for the orchestration
 skills. Each proposal carries its status, checked against the skills installed
 on 26 October 2026; one with no status is still open. The owner's rule: a skill changes only on evidence

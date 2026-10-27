@@ -20,7 +20,7 @@ metadata:
 - Never: merge any other way than the merge script, or post a `Sol verdict` status yourself; on a `WAIT`, fix its gate. Never weaken a finding's test; argue it on the PR. Stop only processes you started, by PID after checking its command, never by name (`pkill -f`, `killall`). Search inside your worktree, never from `/` or `/Volumes`.
 
 ## Steps
-`C`: the Code Factory clone, `~/.cache/code-factory`, pulled (cloned if missing). `G`: `C/orchestration/single/handoff.sh`. Run `G ctx` after every push, Sol round and merge, acting at once per step 9: `HANDOFF` or `HARD` hands off now, mid-review included (owner, 17 October 2026).
+`C`: the Code Factory clone, `~/.cache/code-factory`, pulled (cloned if missing). `G`: `C/orchestration/single/handoff.sh`. Run `G ctx` after every push, Sol round and merge, acting at once per step 9: `HANDOFF` or `HARD` hands off now, mid-review included.
 
 1. **Shape.** Read the job and code; unsettled, take [the route](../../docs/SINGLE.md#shape-it-first-when-it-isnt-settled) first. Done when: the ticket lists the decisions, pull requests within [Pull request size](../../docs/METHOD.md#pull-request-size), and each criterion's named test.
 2. **Branch** a worktree off fresh `main`, named by the project's lane rules. Done when: `git status` is clean on the new branch.

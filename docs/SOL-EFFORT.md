@@ -1,9 +1,8 @@
 # Sol review effort
 
-Owner decision, 17 October 2026, private ticket #188.
-This applies to **both full (fleet) and single mode**, including fix passes,
-capability reads, skill reviews and blind grading. It replaces the blanket
-high-effort review default. It does not change builder models, review rounds,
+This applies to both full (fleet) and single mode, including fix passes,
+capability reads, skill reviews and blind grading. Review effort follows risk,
+not a blanket high default. It does not change builder models, review rounds,
 who must review, approval requirements or spend limits.
 
 | Review risk | Codex `model_reasoning_effort` |

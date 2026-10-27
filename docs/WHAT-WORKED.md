@@ -1,5 +1,7 @@
 # What worked
 
+*A record of how the method got here, kept as evidence for [HISTORY.md](HISTORY.md#dropped-and-why). You don't need it to run a build; start at the [reading order](../README.md#where-to-start).*
+
 The record of every method change Code Factory tried, what it measured, and whether it stayed. It points to the sources and does not copy them. [FLEET.md](FLEET.md) is the current model, approved by the owner on 15 October 2026. A new trial gets a row here with its measure, and a verdict once the measure is in.
 
 Verdicts:

@@ -10,7 +10,7 @@ Start step 1 when `ctx.sh` prints `PREPARE` (the skill's step 7), step 2 when it
    - Last line: `DIRECTOR-<n+1>-BOOT-END`.
 
    Then run `wrap-up` (`/wrapup`) while you still have room for the owner's words verbatim. Done when: the three sections each have a bullet, `tail -1` shows `DIRECTOR-<n+1>-BOOT-END`, and the wrap-up printed its record's path.
-2. **Boot the successor** with remote control already on. Each director sits alone in its own workspace, `<PROJ>-Director-<n>` (owner, 26 Oct 2026, private ticket #322): nothing opens a tab or pane in it, and `herdr-dispatch` refuses any workspace label with a `Director` or `Remote-Control` part. Pick a full-login seat with `claude-subscription-switch`, open a new workspace for it alone, `herdr workspace create --cwd "$HOME" --label <PROJ>-Director-<n+1> --no-focus` (never a tab or split in your own or any other workspace), resolve its pane with `herdr`, and launch on the seat's own login, which remote control needs:
+2. **Boot the successor** with remote control already on. Each director sits alone in its own workspace, `<PROJ>-Director-<n>`: nothing opens a tab or pane in it, and `herdr-dispatch` refuses any workspace label with a `Director` or `Remote-Control` part. Pick a full-login seat with `claude-subscription-switch`, open a new workspace for it alone, `herdr workspace create --cwd "$HOME" --label <PROJ>-Director-<n+1> --no-focus` (never a tab or split in your own or any other workspace), resolve its pane with `herdr`, and launch on the seat's own login, which remote control needs:
 
    ```sh
    env -u CLAUDE_CODE_OAUTH_TOKEN CLAUDE_CONFIG_DIR="$HOME/.claude-seat-<seat>" claude --dangerously-skip-permissions --model opus --effort high --remote-control "<PROJ>-Director-<n+1>"

@@ -1,6 +1,6 @@
 # Watch
 
-`kick.sh` covers a quiet orchestrator, context hand-overs and merge stalls without tokens. Your check covers what it can't see. The owner's rule (19 Oct 2026): "the director checks every 30 minutes, not hourly, and each check closes out passive lanes (done or idle, no work in hand) and reads both pre-check lines for a stall". kick.sh's run of `precheck-stall.sh` reads the pre-check lines and writes their stall alerts to `RELAY-LOG.md`; you act on those alerts.
+`kick.sh` covers a quiet orchestrator, context hand-overs and merge stalls without tokens. Your check covers what it can't see. Check every 30 minutes. Each check closes out passive lanes (done or idle, no work in hand) and reads both pre-check lines for a stall. kick.sh's run of `precheck-stall.sh` reads the pre-check lines and writes their stall alerts to `RELAY-LOG.md`; you act on those alerts.
 
 ## Start the kicker and the check
 
@@ -19,7 +19,7 @@ Then schedule a check every 30 minutes with CronCreate, prompt `Director check: 
 
 ## What kick.sh already does
 
-Each run it nudges a quiet, idle orchestrator, at most once per pane in its nudge window, and sends it one hand-over nudge when `ctx.sh` prints `HANDOVER` (skill step 7). It writes your own `DIRWATCH` line and `RELAY-ALERT` lines to `RELAY-LOG.md`, never into your pane: pane gone, long silence, a nudge that did not land, a hand-over line with no pane id it can parse, and, while work waits, the owner's merge alarms (19 Oct 2026) and FLEET's no-merge tripwire. Its thresholds are inline in `kick.sh`. Every delivery goes through `send.sh`, which stops on any dialog.
+Each run it nudges a quiet, idle orchestrator, at most once per pane in its nudge window, and sends it one hand-over nudge when `ctx.sh` prints `HANDOVER` (skill step 7). It writes your own `DIRWATCH` line and `RELAY-ALERT` lines to `RELAY-LOG.md`, never into your pane: pane gone, long silence, a nudge that did not land, a hand-over line with no pane id it can parse, and, while work waits, the merge alarms and FLEET's no-merge tripwire. Its thresholds are inline in `kick.sh`. Every delivery goes through `send.sh`, which stops on any dialog.
 
 ## The list
 

@@ -1,5 +1,7 @@
 # How the loop got its shape
 
+*A record of how the method got here. You don't need it to run a build; start at the [reading order](../README.md#where-to-start). Check [Dropped, and why](#dropped-and-why) before bringing a rule back.*
+
 Two things changed between 17 and 21 September 2026, and both cost money to
 learn. Briefs went from prose to numbered files. Copilot went from a reviewer
 in the chain to nothing at all. Every figure below comes from `docs/rounds/`,
@@ -321,7 +323,7 @@ on this list comes back only through [FLEET.md](FLEET.md#how-this-changes).
 | 45 | Train-enqueue of stacks | 20 Oct | One goal merge in 3 hours; top-carry or serial | rounds/2026-10-20-ops-live-agent-run-night.md |
 | 46 | Speeds slow, medium and fast | 25 Oct | [Build variants](METHOD.md#build-variants) | [above](#build-speeds-become-build-variants-25-october-2026) |
 | 47 | Caps on open, ready or approved pull requests | 25, 26 Oct | Froze pull request opening for about 6.4 hours; capacity caps only | [METHOD.md](METHOD.md#seats-lanes-and-stops) |
-| 48 | Stacked pull requests and restacks | 25, 26 Oct | Cost #177 seven heads; no stack by default (hardened: two exceptions by top-carry) | [production.md](variants/production.md#what-changes), [hardened](variants/hardened-production.md#production-learnings-adopted-owner-26-october-2026) |
+| 48 | Stacked pull requests and restacks | 25, 26 Oct | Cost #177 seven heads; no stack by default (hardened: two exceptions by top-carry) | [production.md](variants/production.md#what-changes), [hardened](variants/hardened-production.md#production-learnings-adopted) |
 | 49 | Sol re-reads of identical rebases | 2, 25 Oct | 74 re-checks found nothing; the carry | [METHOD.md](METHOD.md#building-on-main), item 6 |
 | 50 | Strict "up to date" (production, with a landing tool only) | 25 Oct | Not yet proven: waits for raw-to-export's `LAND-SHADOW` evidence | [production.md](variants/production.md#what-changes), change 11 |
 | 51 | Code Factory retired, then revived | 28-29 Sep | Revived to hold the method | [above](#build-speeds-before-trunk) |

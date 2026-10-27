@@ -1,7 +1,7 @@
 # Contributing to Code Factory
 
-Outside contributions are closed while the repository is private. What follows
-is how a change is proposed when they open, and how they are made now.
+Outside contributions are not open yet. What follows is how a change is
+proposed and made.
 
 ## Propose a change
 
@@ -34,7 +34,7 @@ it adversarially, every head until it approves the exact head
 every hold. A refusal without a criterion is not a hold. A later review does
 not clear an earlier refusal on the same head; a new head does.
 
-`docs/rounds/` is the dated record of what the seven rounds proved. It is not
+`docs/rounds/` points to the round records, which stay private. It is not
 edited. A correction to it is a new file.
 
 The [code of conduct](CODE_OF_CONDUCT.md) applies to everyone. Report

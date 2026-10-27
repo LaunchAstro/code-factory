@@ -1,15 +1,14 @@
 # Single mode
 
-Code Factory has two modes (owner, 15 October 2026):
+Code Factory has two modes.
 
 - **Full mode**, [FLEET.md](FLEET.md) and [METHOD.md](METHOD.md): a director,
   an orchestrator and lanes, for a big build with many pieces.
-- **Single mode**, this file: one agent owns one area of a repository (Ops
-  Astro's chat, the agency site's services page) and lands its work on `main`
-  as a run of small pull requests, with Sol reviewing what carries risk.
+- **Single mode**, this file: one agent owns one area of a repository (an
+  app's chat, a site's services page) and lands its work on `main` as a run
+  of small pull requests, with Sol reviewing what carries risk.
 
-There is nothing in between. The lean core was trialled on the website
-template and retired the same day this file was written.
+There is nothing in between.
 
 Both modes run one of the [build variants](METHOD.md#build-variants). This
 file is hardened production as written. Production is this file with the
@@ -21,8 +20,8 @@ and merge steps.
 ## Who
 
 - **The owner, or the session the owner is talking to,** names the area and
-  the job and launches the agent with the `dispatch` skill, on a seat that
-  [Seat Gauge](https://github.com/LaunchAstro/seat-gauge) shows has room.
+  the job and launches the agent with the `dispatch` skill, on a seat that a
+  usage reader (a tool that reads each seat's remaining usage) shows has room.
   At the hand-off line, the agent launches its own successor the same way
   ([below](#hand-off-at-50-percent-context)).
 - **The agent** (Opus 5.5 high unless the launch names another Claude
@@ -64,10 +63,10 @@ On a private repository with no merge queue and no landing tool that binds
 each merge to the tree its full run tested, GitHub's "require branches to be
 up to date before merging" stays on for `main`, whatever the agent count. The
 merge script checks only the pull request's head, so without the setting two
-heads each checked on an older `main` could land together untested. No queue
-of our own. Production's [change 11](variants/production.md#what-changes) keeps its
-own wording. Switching the setting off is not proven: it waits for
-raw-to-export's `LAND-SHADOW` evidence, and none exists yet.
+heads each checked on an older `main` could land together untested. Build no
+queue of your own. Production's [change 11](variants/production.md#what-changes)
+keeps its own wording. Keep the setting on until a landing tool proves, in a
+shadow run, that every merge lands the tree its full run tested.
 
 ## Risk
 
@@ -87,15 +86,14 @@ This table is single mode's round limit; what happens at it is the ladder in
 size. The rank goes in the description as `**Risk:** <rank>, <reason>`.
 [Sol effort](SOL-EFFORT.md) is the same in both modes, including fix passes.
 
-**Same kind twice, fix the kind** (owner, 17 October 2026): the rule, within
-one pull request and across them, is in
-[Review rounds](METHOD.md#review-rounds).
+**Same kind twice, fix the kind.** The rule, within one pull request and
+across them, is in [Review rounds](METHOD.md#review-rounds).
 
 Render Sol's prompt with
 [`make_sol_prompt.py`](../orchestration/reviewer/make_sol_prompt.py), following
 its [usage](../orchestration/reviewer/README.md#render-a-sol-prompt). It always
 passes the diff as a separate file and opens with the no-skill reviewer line,
-including on fix passes (#184).
+including on fix passes.
 
 ## Merge
 
@@ -103,11 +101,12 @@ The agent runs the merge script,
 [`orchestration/enqueue.mjs`](../orchestration/enqueue.mjs), pointed at its
 repository. It never merges around it:
 
-- **Ops Astro** (public, GitHub's merge queue): the script queues the pull
+- **A repository with GitHub's merge queue:** the script queues the pull
   request once every required check, Sol's included, is green on the exact
   head and the description has its three lines. Sol's verdict is one of those
   checks, so Sol reviews every pull request there, low included.
-- **Private repositories** (where the plan has no merge queue): the script
+- **A repository with no merge queue** (often a private one, where the plan
+  has none): the script
   merges straight to `main` once every check on the head has passed and the
   description has its lines and its risk. For medium and high, Sol must also
   have set a `Sol verdict` commit status of `success` on that exact head. The
@@ -120,11 +119,10 @@ repository. It never merges around it:
 ## Hand-off at 50 percent context
 
 A session that runs until Claude Code summarises itself loses the pull
-request heads, worktrees and Sol rounds it was holding (owner, 17 October
-2026, private ticket #182). So the
-agent hands off to a fresh session first, by the context bar in its pane's
-status line. The numbers, what each band means and the owner's words are the
-one rule for every role in [METHOD.md](METHOD.md#seats-lanes-and-stops):
+request heads, worktrees and Sol rounds it was holding. So the agent hands
+off to a fresh session first, by the context bar in its pane's status line.
+The numbers and what each band means are the one rule for every role in
+[METHOD.md](METHOD.md#seats-lanes-and-stops):
 finish at 45, hand off at 50, hard cap 70. Single mode names the bands with
 these lines:
 
@@ -150,8 +148,8 @@ the mechanical part, and holds the three numbers:
 - `handoff.sh dispatch <note> --cwd <dir> --label <label> --seat <seat>`
   refuses a note with a `<fill>` left, then launches a fresh `single-agent`
   session with the note as its whole brief, through the `dispatch` skill's
-  `herdr-dispatch`, on the seat [Seat Gauge](https://github.com/LaunchAstro/seat-gauge)
-  shows has room. `--dry-run` launches nothing.
+  `herdr-dispatch`, on a seat the usage reader shows has room. `--dry-run`
+  launches nothing.
 
 The pull request in hand is parked first: pushed, with its Sol state in the
 note. Then the old session stops. Codex and Sol keep the context limits their
@@ -167,4 +165,4 @@ and Sol's comment ending in its exact-head footer.
 ## Paperwork
 
 As full mode ([FLEET.md](FLEET.md#paperwork-four-things-per-agent-nothing-else)),
-plus the risk line on a private repository, then `close-out`.
+plus the risk line on a repository with no merge queue, then `close-out`.

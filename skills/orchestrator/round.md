@@ -2,7 +2,7 @@
 
 Before any lane pane exists, even when authorised, send the owner only the variant offer (`code-factory` rule 2) and any [work-map offer](../../docs/METHOD.md#before-the-build-plan-deep); write the binding into the state note:
 
-1. Build variant; runtime, model and effort per lane per the model split (`docs/models.md` in Skill Factory, private), no Fable until the owner allows it.
+1. Build variant; runtime, model and effort per lane per the model split (your own model list), no Fable until the owner allows it.
 2. Lane count, build sub-agent target, each lane's seat, each seat's 5h and 7d figures, reviewer sessions budgeted, Actions minutes.
 3. Ceilings: per stage (context, wall time, pushes, reviews) from the brief and variant; per round, below.
 4. **Standing permission** per [What reaches the owner](../../docs/METHOD.md#what-reaches-the-owner): routine build questions are yours, each mentioned at the next check-in.

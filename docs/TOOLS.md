@@ -19,9 +19,7 @@ Use an isolated round copy for verification. See [watch command](../orchestratio
 | `node --test orchestration/tests/`                                                                                           | Kit and incident replay tests                                |
 | `node orchestration/archive/stages.mjs --check`                                                                              | Validate stage definitions                                   |
 
-The 5 October catalogue (`TOOLS-CATALOGUE-2026-10-05.md`, a private round record) of the
-round-folder scripts is a record now. These commands cover only some of
-those scripts' checks; [watch-coverage.md](../orchestration/watch-coverage.md)
+These commands cover only some of the older round-folder scripts' checks; [watch-coverage.md](../orchestration/watch-coverage.md)
 says which, and the checks it marks not covered stay with their existing
 owners. Report-only commands do not replace every operational check.
 
@@ -74,11 +72,10 @@ Cases: `node --test orchestration/tests/touches-cases.mjs`.
 
 ## Old round tools the coverage table still tracks
 
-Two of the 5 October orchestrator scripts, kept here because
+Two older orchestrator scripts, kept here because
 [watch-coverage.md](../orchestration/watch-coverage.md) must give each a
 coverage decision (`orchestration/tests/coverage-fixture-cases.mjs` reads
-these rows). The rest of that catalogue is
-the record (`TOOLS-CATALOGUE-2026-10-05.md`, a private round record).
+these rows).
 
 | Script                                 | Does                                                                                                                                                                                               | When                                     | Safety                                                                                                                                   |
 | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
