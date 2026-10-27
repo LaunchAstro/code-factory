@@ -269,11 +269,14 @@ What each check guards, costs and catches: [CI-CHECKS.md](CI-CHECKS.md).
   others.
 - **Big runs by machine.** A big run is a pre-check group, a full suite, or a
   Postgres or Docker run.
-  - **The check machine** (18 cores) runs up to 3 at once through its
-    first-come queue (`orchestration/m5/checks/`). A new run starts only
-    while the machine reads under 0.8 load per core and at least 2 minutes
-    after the last start. Past the line nothing new starts and running ones
-    carry on.
+  - **The check machine** (18 cores) runs up to 4 at once while it reads
+    under 0.8 load per core with at least 12 GB free. Past either line nothing
+    new starts and running ones carry on. Its first-come queue
+    (`orchestration/m5/checks/check-queue.py`) enforces part of this today: 3
+    slots, and while another run is active, the 0.8 line and 2 minutes after
+    the last start. A run into an empty queue starts regardless of load. The
+    queue does not check free memory, and its default mode is shadow
+    ([its README](../orchestration/m5/README.md)).
   - **The owner's machine takes no big runs.** No full checks, test suites,
     Playwright runs or builds on the owner's machine, and never make load on
     purpose, unless the owner opens it for work. It runs the owner's own

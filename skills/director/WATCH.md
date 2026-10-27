@@ -39,4 +39,4 @@ Put every finding, and any merge alert since the last check, in one pointer to t
 - HH:MM check: <MOVING | KICK>. <what changed>. <n> lanes, <p> passive, load <per machine>. Orch <pct>%, director <pct>%. Disk <per machine>G. <No kick | KICK: findings>.
 ```
 
-Write to `events.log`, `RELAY-LOG.md` and any file a loop follows only by appending (`>>`). Fix a wrong line with a new `CORRECTION:` line, never an edit in place: on 13 Oct an in-place edit made every watcher replay the log and re-queue about 134 PRs.
+Write to `events.log`, `RELAY-LOG.md` and any file a loop follows only by appending (`>>`). Fix a wrong line with a new `CORRECTION:` line, never an edit in place.

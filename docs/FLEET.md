@@ -112,4 +112,4 @@ The event log keeps milestones only (started, ready, merged, blocked, closed) an
 
 ## How this changes
 
-A change to this model needs evidence first, then the owner's yes. Bring what was tried and what it measured, ask the owner, and change the file only after they agree.
+Evidence first, then a grilling, then the owner's yes. Each change is logged in [SKILL-WATCH.md](SKILL-WATCH.md) with what was tried and what it measured, and the file changes only after the owner agrees.

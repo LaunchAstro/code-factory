@@ -58,18 +58,22 @@ template a new project copies (`template/`).
    cap the piece splits or goes to the director
    ([review rounds](docs/METHOD.md#review-rounds)). Sol's effort follows the
    change's risk ([docs/SOL-EFFORT.md](docs/SOL-EFFORT.md)).
-4. **Checks.** A pull request runs the fast checks and the tests its change
-   touches. The merge queue runs the full set on the exact combined head.
-   Heavy local runs (full checks, browser tests, builds) go to a separate
+4. **Checks.** The method's policy is a light set on the pull request and
+   the full set in the merge queue on the exact combined head. The template's
+   CI runs the full `pnpm check` on every pull request and push to `main`, so
+   a project adds and rehearses merge-group checks before relying on that
+   split. Heavy local runs (full checks, browser tests, builds) go to a separate
    check machine, so the machine the owner works on stays free
    ([where the full tests run](docs/METHOD.md#where-the-full-tests-run)).
 5. **Describe.** The pull request carries three lines: `**Why:**`,
    `**Left undone:**` (follow-up tickets, or `none`) and `Closes #n`
    ([paperwork](docs/FLEET.md#paperwork-four-things-per-agent-nothing-else)).
-6. **Merge.** The lane marks the pull request ready. The merge script checks
-   the three lines and puts it in GitHub's merge queue, which merges it when
-   every required check passes. A dropped pull request is re-queued once,
-   then handed back to its lane
+6. **Merge.** The lane runs the merge script (`orchestration/enqueue.mjs`)
+   for the pull request and its exact head. The script checks the three lines
+   and the required checks, then puts the pull request in GitHub's merge
+   queue, or merges it directly on a repository with no queue. After a drop
+   the lane runs it again: one re-queue is allowed, then it refuses and the
+   piece goes back to the lane
    ([the merge pipeline](docs/METHOD.md#the-merge-pipeline)).
 
 ### Build variants
