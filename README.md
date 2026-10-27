@@ -17,6 +17,11 @@ after it clears three checks:
 You don't need to be a programmer to drive it. Those three checks are what
 make the result solid, whoever is driving.
 
+Code Factory was shaped over about 4,000 agent sessions and more than 30,000
+commits across LaunchAstro's projects, since every one of them is built this
+way, not only this repository. It's battle-tested, and it can still be
+improved.
+
 This repository holds the method (`docs/`), the skills agents load to run it
 (`skills/`), the scripts behind it (`orchestration/`) and a repository
 template a new project copies (`template/`).
@@ -166,6 +171,23 @@ from each and under which licence.
   [`ralph-lisa-loop`](https://github.com/basecamp/house-skills/tree/main/plugins/dev/skills/ralph-lisa-loop)
   behind Sol's finding ids and disputes
   ([the close gate](orchestration/reviewer/README.md#finding-ids-disputes-and-the-close-gate)).
+
+## Works with
+
+Two separate LaunchAstro repositories work alongside Code Factory. Neither is
+part of it, and a build runs without either.
+
+- [Work Map](https://github.com/LaunchAstro/work-map): a live local map of a
+  project's work, read from GitHub. It places each ticket and pull request on
+  a section by its `Section:` line, so a build's tickets and pull requests
+  show up there with nothing extra to write
+  ([docs/agents/issue-tracker.md](docs/agents/issue-tracker.md)).
+- [Seat Gauge](https://github.com/LaunchAstro/seat-gauge): a macOS window
+  showing each Claude Code and Codex subscription's usage and reset times.
+  Its `seat-gauge` skill reads the files the window writes, and the skills
+  here use it to put new work on the seat with the most room and to check
+  each machine's load
+  ([Seats, lanes and stops](docs/METHOD.md#seats-lanes-and-stops)).
 
 ## Licence
 
