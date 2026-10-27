@@ -1,6 +1,6 @@
 # How the fleet works
 
-Owner-approved model, from the 15 October 2026 grilling (answers kept in ops-astro-roadmap `.local/fleet-grilling-2026-10-15/ANSWERS.md`, a private local folder). It replaces the roles, review and paperwork parts of [METHOD.md](METHOD.md) wherever the two disagree.
+This file sets the fleet's roles, review and paperwork. It wins over [METHOD.md](METHOD.md) wherever the two disagree.
 
 **The rule behind everything:** tokens go on the problem, not on reports and ceremony. Spending 5 million tokens on a hard problem is fine. Spending them relaying, re-reading and proving paperwork is not.
 
@@ -39,7 +39,7 @@ The lane fixes its own bugs, failing checks and review findings without asking. 
 
 ## Models
 
-Which model does each job, and at what effort, lives in Skill Factory's `models.md` (a private repository). This file keeps the rule behind it: Claude (Opus) builds, directs and orchestrates; Sol only reviews and never writes product code. The reviewer of record is always from a different company than the builder: a model's review of its own company's work clears nothing (12 October 2026).
+Which model does each job, and at what effort, lives in your model list. This file keeps the rule behind it. Claude (Opus) builds, directs and orchestrates. Sol only reviews and never writes product code. The reviewer of record is always from a different company than the builder. A model's review of its own company's work clears nothing.
 
 ## Review
 
@@ -71,7 +71,7 @@ For any operation that closes every pane. Jobs started with `nohup` survive a pa
 ## Paperwork: four things per agent, nothing else
 
 1. **A start line:** repo, section, ticket, seat, model and session (the Code Factory declaration writer).
-2. **Three lines in its PR description** (owner, 15 October 2026, 11:30 and 11:45), and no separate wrap-up document: a wrap-up that describes the code drifts from it, and the code is the truth.
+2. **Three lines in its PR description,** and no separate wrap-up document. A wrap-up that describes the code drifts from it, and the code is the truth.
    - `**Why:**` the reasons for the choices, tied to that exact code.
    - `**Left undone:**` the follow-up ticket numbers, or `none`. Unfinished work becomes tickets.
    - `Closes #n` for each ticket the change finishes (GitHub closes it on merge), or `Closes: none`.
@@ -80,14 +80,14 @@ For any operation that closes every pane. Jobs started with `nohup` survive a pa
    - **The price of the queue.** Before the loading bay queues a PR, the merge script checks for the three lines ([enqueue.md](../orchestration/enqueue.md#the-loading-bays-gates)). If any is missing or malformed, the PR stays out of the queue, and the script sends the owning lane's pane one line with the template. The lane is still open, waiting for its merge.
    - **Automatic fallback.** When a session ends without a PR, or is closed suddenly, a script records only its branch and the tickets it touched.
    - **Visible gaps.** The work map marks any agent that closed without either. The orchestrator's close-down check sees the same mark.
-3. **Its finish** (owner, 15 October 2026, 15:45). An agent started to do a task (a lane, a worktree job, a dispatched task) finishes with the `close-out` skill. It:
+3. **Its finish.** An agent started to do a task (a lane, a worktree job, a dispatched task) finishes with the `close-out` skill. It:
    - checks the three lines;
    - turns unfinished work into tickets;
-   - saves a short record (the task, the PR and ticket numbers, non-code lessons, never the code) to the private vault's `Sessions/`;
+   - saves a short record (the task, the PR and ticket numbers, non-code lessons, never the code) to the owner's private session records;
    - removes its own work copies once their work is pushed or merged (a copy holding unpushed work stays, named in its report);
    - tells whoever started it.
 
-   A Sol run's script removes its review copy once the verdict posts, as `orchestration/reviewer/sol-pr-cf.sh` does. The M5's weekly sweep ([orchestration/m5](../orchestration/m5/README.md)) moves what is left to the Bin (owner, 21 October 2026). A session the owner took part in (a director, an owner chat) uses the wrap-up instead: his words verbatim, his questions, decisions, research and learnings.
+   A Sol run's script removes its review copy once the verdict posts, as `orchestration/reviewer/sol-pr-cf.sh` does. The check machine's weekly sweep ([orchestration/m5](../orchestration/m5/README.md)) moves what is left to the Bin. A session the owner took part in (a director, an owner chat) uses the wrap-up instead: their words verbatim, their questions, decisions, research and learnings.
 4. **Its tokens and working time.** No agent reports these. A script collects them: herdr gives each pane's process, model and status, and the process's own session log gives its token counts and timestamps.
 
 The event log keeps milestones only (started, ready, merged, blocked, closed) and starts fresh each day. Handovers are one line plus a short state note.
@@ -105,11 +105,11 @@ The event log keeps milestones only (started, ready, merged, blocked, closed) an
   - at **1.5×** it alerts the orchestrator to kick it;
   - at **2×** the director tells the owner and pauses the piece.
 - **A daily split** of tokens between work (builders, reviewers) and overhead (director, orchestrator). Target: at least 70% on the work.
-- **Bookkeeping is scripts, never in the way** (owner, 15 October 2026, 11:45):
+- **Bookkeeping is scripts, never in the way.**
   - GitHub closes tickets from `Closes #n` on merge; a script marks a spec built when all its tickets are closed and rolls progress up the work map's sections.
   - Luna or Haiku runs beside it, read-only and advisory: it suggests fuzzy closes, flags stuck work and suggests what to work on next, each shown in the work map with a one-click confirm. It is never in the merge path; if it breaks, builds and merges carry on.
 - **Tripwires:** a review or switch-on cycle restarting more than twice, or no merge for 2 hours while work is in flight. Each is reported, never answered with another round.
 
 ## How this changes
 
-Through the owner: evidence first, then a grilling, then the owner's yes. Each change is logged in [SKILL-WATCH.md](SKILL-WATCH.md) with what was tried and what it measured. The first trial was the first slice built this way, on 19 October 2026; its tokens per merge against the week of 12 October are not measured yet ([WHAT-WORKED.md](WHAT-WORKED.md)).
+Evidence first, then a grilling, then the owner's yes. Each change is logged in [SKILL-WATCH.md](SKILL-WATCH.md) with what was tried and what it measured, and the file changes only after the owner agrees.

@@ -1,10 +1,11 @@
 # The Code Factory skills
 
-These are the skills that run a Code Factory round, copied here so a reader
-has the whole method in one place. They were copied on 27 October 2026 from
-the owner's private skills repository and scrubbed like the rest of this
-repository. The owner's live copies keep moving; these are a snapshot, not a
-pin.
+These are the skills that run a Code Factory build, kept here so a reader
+has the whole method in one place. Each one links back to the method in
+`../docs/` and the scripts in `../orchestration/`. Start with the one for
+your role: `director`, `orchestrator`, `build-review` for a lane, or
+`single-agent` in single mode. New to the repository? Read the
+[reading order](../README.md#where-to-start) first.
 
 | Skill | What it does |
 | --- | --- |
@@ -17,9 +18,6 @@ pin.
 | [batch-cleanup](batch-cleanup/SKILL.md) | One section-end cleanup pass: thermonuclear, architecture, deslop or unslop |
 | [dispatch](dispatch/SKILL.md) | Hands one task to a fresh agent in its own herdr tab |
 | [herdr](herdr/SKILL.md) | Drives herdr workspaces, tabs and panes |
-
-Links into `../docs/` and `../orchestration/` point at this repository's own
-method and scripts.
 
 ## Install
 
@@ -42,8 +40,8 @@ sources rather than from a copy:
 
 `SOURCES.json`'s `prerequisites` lists both, with their install commands.
 
-A few skills named here are the owner's own and stay private:
-`claude-subscription-switch` (boots an agent on a chosen subscription),
-`seat-gauge` (reads how much of each subscription is left), `close-out` and
-`wrap-up` (how a session records its end), and `afk-orchestrator`. Where a
-skill names one, use your own equivalent or leave that step out.
+A few skills named here are not included: `claude-subscription-switch`
+(boots an agent on a chosen subscription), `seat-gauge` (reads how much of
+each subscription is left), `close-out` and `wrap-up` (how a session records
+its end), and `afk-orchestrator`. Where a skill names one, use your own
+equivalent or leave that step out.

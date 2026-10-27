@@ -27,12 +27,11 @@ A prototype that needs any of these stops and is promoted first (below).
    `build-review` and `single-agent` skills carry the Sol variants' review
    and merge rules, so a prototype lane follows this page instead.
 4. **Merge straight to `main`** once the repository's own checks and both
-   sweeps pass on the head: one committed check script (for example
+   sweeps pass on the head, through one committed check script (for example
    `scripts/check.sh`) that runs the tests and both sweeps over everything
    reachable from the head. The first commit goes to `main` directly. A
    stack merges bottom first, each piece directly; never queue a stack's
-   children behind their parent (it failed on 20 October,
-   private ticket #248).
+   children behind their parent.
 5. **Record the start.** The first commit on `main` names the variant in its
    message (`Variant: prototype`), so a later promotion knows where unreviewed
    code begins.
@@ -51,9 +50,9 @@ Prototype drops review, never these:
    sweeps, and the pre-push hook sweeps every pushed commit. The hooks are
    committed in `hooks/` and switched on with
    `git config core.hooksPath hooks` in each clone. A repository
-   with no client-material sweep gets one before its first commit; the
-   model is raw-to-export's `scripts/sweep.py`, which refuses image, raw,
-   video and catalog files by extension and by their first bytes.
+   with no client-material sweep gets one before its first commit. A good
+   one refuses image, raw, video and catalog files by extension and by
+   their first bytes.
 2. **No client data in git:** made-up or public sample data only, and no
    client names, files or details in code, tests, commit messages or pull
    requests.
@@ -78,11 +77,9 @@ else).
   fixed and re-checked), add the production variant's live proofs, then
   every new pull request follows [production.md](production.md).
 - **Larger:** rebuild it through [the route](../METHOD.md#before-the-build-plan-deep),
-  with the prototype as the spec. Unreviewed code does not clear itself:
-  when Code Factory deferred review in October, owed reviews grew from 325
-  to 365 in a day with none cleared, and Slice One's 50 unreviewed merges
-  left 456 root causes to find
-  ([WHAT-WORKED.md](../WHAT-WORKED.md#review-rounds-and-reviewers)).
+  with the prototype as the spec. Unreviewed code does not clear itself.
+  Owed reviews grow faster than they clear, and many unreviewed merges leave
+  many root causes to find.
 
 The promoted code moves to a production repository, or the prototype
 repository becomes one, with its branch protection and merge script set up

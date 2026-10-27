@@ -1,8 +1,7 @@
 # Issue tracker
 
-GitHub Issues is the tracker for `LaunchAstro/code-factory-private`. Planning maps can
-have children in other LaunchAstro repositories. Build tickets live in the
-repository where their change lands.
+GitHub Issues is the tracker. Planning maps can have children in other
+repositories. Build tickets live in the repository where their change lands.
 
 ## Labels and issue types
 
@@ -15,8 +14,8 @@ The tracker uses these issue types.
 | Spec            | `ready-for-agent` and a `Spec:` title                                                  | Agreed behaviour and acceptance for a set of build tickets.               |
 | Build ticket    | `ready-for-agent`                                                                      | One independently verifiable change with its acceptance and dependencies. |
 
-Older decision tickets can carry `wayfinder:ticket`. Read their parent and
-resolution before treating them as build work. Source proposals can retain
+A decision ticket can carry `wayfinder:ticket`. Read its parent and
+resolution before treating it as build work. A source proposal can carry
 `enhancement`; a proposal label does not make an issue ready to build.
 
 Specs also carry `ready-for-agent`. A query on that label alone is not a
@@ -46,9 +45,9 @@ These reads show a map, its children, and a child's native blockers. The
 repository is explicit because an issue number alone is local to one repo.
 
 ```sh
-gh issue view 121 --repo LaunchAstro/code-factory-private
-gh api repos/LaunchAstro/code-factory-private/issues/121/sub_issues --paginate
-gh api repos/LaunchAstro/code-factory-private/issues/130/dependencies/blocked_by --paginate
+gh issue view <map> --repo OWNER/REPO
+gh api repos/OWNER/REPO/issues/<map>/sub_issues --paginate
+gh api repos/OWNER/REPO/issues/<ticket>/dependencies/blocked_by --paginate
 ```
 
 After a decision resolves, record the answer in a resolution comment, close
@@ -56,10 +55,9 @@ the decision ticket, and add a named link with a one-line gist to the map.
 Leave unspecified work under Not yet specified until its question is clear.
 Work outside the destination belongs under Out of scope.
 
-The current example is Map: watcher repairs and landing capacity (private ticket #121).
-Its shared fleet watchers and landing capacity spec (private ticket #123)
-has build tickets in Code Factory and Ops Astro. Tickets for Ops Astro's CI
-land in Ops Astro while remaining children of the Code Factory map.
+A map can span repositories. A spec under it can have build tickets in
+several repositories, and each ticket lands where its change lands while it
+stays a child of the map.
 
 ## Ticket and section declarations
 
@@ -78,11 +76,10 @@ Use `Ticket: C80, C81` for several plan tickets, or `Unit: U32` for a whole
 unit. These IDs come from the product's build plan. A GitHub issue reference
 in a title or paragraph does not replace the declaration.
 
-For work outside that plan, including this kit's tracker documentation and
-Ops Astro's watcher-related CI chores, use `Ticket: none`. Link the tracker
-issue or map separately in the PR body. Use `Closes #124` only when the PR
-delivers the issue's acceptance. Use a full repository reference for an issue
-in another repository.
+For work outside that plan, such as tracker documentation or CI chores, use
+`Ticket: none`. Link the tracker issue or map separately in the PR body. Use
+`Closes #124` only when the PR delivers the issue's acceptance. Use a full
+repository reference for an issue in another repository.
 
 The round log records the same declarations at boot and when work changes.
 
@@ -92,21 +89,20 @@ The round log records the same declarations at boot and when work changes.
 2026-10-14T01:02:00Z BUILD-A TICKET Ticket: C81 complete Section: checks
 ```
 
-Use UTC timestamps. Include `machine=m5` when the lane runs on the M5.
-Keep Ticket and Section beside each other on BOOTED and TICKET lines.
-The `complete` marker records completion of the named plan ticket.
+Use UTC timestamps. Include `machine=<label>` (as `machine=m5` above) when
+the lane runs on a machine other than the driving one, such as the check
+machine. Keep Ticket and Section beside each other on BOOTED and TICKET
+lines. The `complete` marker records completion of the named plan ticket.
 
-The live roadmap's declared box IDs are `design`, `engine`, `access`,
-`checks`, `hosting`, `m5`, `tasks`, `team`, `wayfinder`, `people`, `chat`,
-`runs`, `auto`, `sitefix`, `conn`, `docs`, `skills`, `review`, `sitereview`,
-`workbench`, `reports`, `crm`, `records`, `portal`, `live`, `money`, `ads`,
-and `edit`. Code Factory watcher and tracker chores declare `checks`.
+Section IDs are the boxes the project's roadmap declares, one short lowercase
+word each (such as `checks`, `docs` or `review`). Use one the roadmap
+declares; kit chores such as watcher and tracker work declare `checks`.
 
-The section map convention ticket (private ticket #141)
-defines project section maps. The [event grammar](../../orchestration/events.md)
-defines the wire records. The live roadmap convention (`CONVENTION.md` in the private roadmap repository)
-defines the plan declarations. Ticket and Section declarations are required
-by the round convention even while older readers lack those fields.
+The project's section map defines its sections. The
+[event grammar](../../orchestration/events.md) defines the wire records. The
+project's roadmap convention defines the plan declarations. Ticket and
+Section declarations are required by the round convention even while older
+readers lack those fields.
 
 ## Build evidence and completion
 

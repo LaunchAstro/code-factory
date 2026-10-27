@@ -6,8 +6,8 @@ merge queue"). Replace each TODO; a TODO left in waits with
 shows it:
 
 **Why:** the reasons for the choices in this code
-**Left undone:** #12, LaunchAstro/work-map#40
-Closes #7, closes LaunchAstro/work-map#8
+**Left undone:** #12, your-org/work-map#40
+Closes #7, closes your-org/work-map#8
 Section: checks
 
 `Left undone: none` and `Closes: none` are allowed. This repository has no

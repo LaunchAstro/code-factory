@@ -1,11 +1,10 @@
 # Set up a machine to run one round
 
-**Mostly archived.** This page set up a machine for the first kit's rounds
-(21 September 2026), and is kept as reference: every section except
-[Sign your commits](#sign-your-commits) belongs to that kit. Signing is
-current for any machine that pushes to a LaunchAstro repository. Seats boot
-today with the `claude-subscription-switch` skill's `claude-seat-up`, and a
-build starts from [METHOD.md](METHOD.md).
+Most of this page sets up a machine for the first round kit, now archived,
+and stays as reference. Only [Sign your commits](#sign-your-commits) applies
+to every machine that pushes to a repository whose ruleset requires signed
+commits. Seats boot with the `claude-subscription-switch` skill's
+`claude-seat-up`, and a build starts from [METHOD.md](METHOD.md).
 
 Eleven things have to be installed and signed in before a round starts. Each line
 gives the command that proves the tool is there; every one must exit 0.
@@ -34,7 +33,7 @@ The reviewer needs one more file, its own GitHub token:
 
 ## Fetch the skills
 
-*Archived: the first kit's pinned skills.*
+*Archived kit: its pinned skills.*
 
 The pinned copies are not in this repository (a snapshot of the Code Factory
 skills is in [skills/](../skills/README.md)). `orchestration/skills/`
@@ -90,7 +89,7 @@ authentication key, and GitHub shows the commit as Verified.
 
 ## Read in this order
 
-*Archived: the first kit's reading order. Today's starts at
+*Archived kit: its reading order. A current build starts at
 [METHOD.md](METHOD.md).*
 
 1. `README.md`: what the loop is, the 7 conditions of the pass line, and the
@@ -105,7 +104,7 @@ Then copy `template/` into a new repository, run
 
 ## Start a round with one command
 
-*Archived: `orchestration/archive/factory.sh`, the first kit's round starter.*
+*Archived kit: `orchestration/archive/factory.sh`, its round starter.*
 
 Copy `orchestration/archive/factory.example.json` to `orchestration/archive/factory.json`, which
 is git-ignored, and fill in every key it shows: the owner and repository, the

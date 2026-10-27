@@ -1,6 +1,6 @@
 # Sol's review, run by the single agent
 
-Open at step 7. The loop is builder, Sol, builder fixes, Sol, until Sol approves the exact head (owner, 26 October 2026). Sol reviews every head, low risk included, as both Sol variant pages say ([hardened-production.md](../../docs/variants/hardened-production.md), [production.md](../../docs/variants/production.md) "What stays strict" 1). Review and rounds go by SINGLE.md's [rank table](../../docs/SINGLE.md#risk), so a high-risk PR also gets one fresh Opus read ([Review rounds](../../docs/METHOD.md#review-rounds)). Effort follows [Sol effort](../../docs/SOL-EFFORT.md), with the PR's rank kept for fix passes.
+Open at step 7. The loop is builder, Sol, builder fixes, Sol, until Sol approves the exact head. Sol reviews every head, low risk included, as both Sol variant pages say ([hardened-production.md](../../docs/variants/hardened-production.md), [production.md](../../docs/variants/production.md) "What stays strict" 1). Review and rounds go by SINGLE.md's [rank table](../../docs/SINGLE.md#risk), so a high-risk PR also gets one fresh Opus read ([Review rounds](../../docs/METHOD.md#review-rounds)). Effort follows [Sol effort](../../docs/SOL-EFFORT.md), with the PR's rank kept for fix passes.
 
 Before each review, update the Code Factory clone `C` from `main`. Verify `python3 orchestration/reviewer/make_sol_prompt.py --help` and, in `C`, `source orchestration/reviewer/codex-shim.sh; type sol_review_effort run_sol_review`.
 A missing renderer or selector blocks the review; never fall back to an inline

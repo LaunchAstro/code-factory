@@ -1,11 +1,13 @@
 # Orchestration kit
 
-Two parts. **Current tools** are what every build uses now: the merge script,
-the pre-checks, the watchers, single mode's hand-off and the reviewer
-mechanics. Report commands run from the kit checkout against a round's files.
-The **archived round kit** below them is the first kit of 17 to 21 September
-2026: stages, briefs, the boot file and `archive/factory.sh`. It is a record, kept
-runnable with its cases; no current build uses it.
+The scripts behind a Code Factory build: the merge script, the pre-checks,
+the watchers, single mode's hand-off and the reviewer mechanics. Report
+commands run from the kit checkout against a round's files. New to the
+repository? Read the [reading order](../README.md#where-to-start) first.
+
+The [first round kit](#the-first-round-kit) at the end (stages, briefs, the
+boot file and `archive/factory.sh`) is kept runnable with its cases. No
+current build uses it.
 
 ## Current tools
 
@@ -49,8 +51,8 @@ runnable with its cases; no current build uses it.
 - `single/handoff.sh` single mode's hand-off: reads the context gauge, writes
   the hand-off note and dispatches the fresh session ([SINGLE.md](../docs/SINGLE.md#hand-off-at-50-percent-context)).
   `tests/single-handoff-cases.sh` is its cases, run with `bash`.
-- `precheck-stall.sh` alerts when a pre-check line stalls (line A on the M5,
-  line B on the Mac): a batch past 190 minutes, a line idle 30 minutes while
+- `precheck-stall.sh` alerts when a pre-check line stalls (line A on the check machine,
+  line B on the owner's machine): a batch past 190 minutes, a line idle 30 minutes while
   PRs wait (a PRECHECK-WAIT head with no verdict, or a PR in the line's queue
   file), or a batch with no runner process of its own. It writes keyed `RELAY-ALERT`
   lines to the round's `RELAY-LOG.md`, and gates nothing. Each run of the
@@ -61,21 +63,20 @@ runnable with its cases; no current build uses it.
   `precheck/runner.sh` writes no `<run>.pid`, so a round sets
   `PRECHECK_PIDS_A`, `PRECHECK_PIDS_B`, `PRECHECK_QUEUE_A` and `PRECHECK_QUEUE_B`.
   `tests/precheck-stall-cases.sh` is its cases, run with `bash`.
-- `copy-sweep.sh` removes old review and check copies (#328): folders in
+- `copy-sweep.sh` removes old review and check copies: folders in
   `$TMPDIR/cf-sol` (Sol review copies, see [reviewer/README.md](reviewer/README.md#review-copies)),
   `sol*` folders directly inside `/private/tmp` and `$TMPDIR` (other rounds'
-  own Sol scripts copy there) and, with `--checks DIR`, the M5's `out-*` and
+  own Sol scripts copy there) and, with `--checks DIR`, the check machine's `out-*` and
   `chk-*` folders in DIR. It
   keeps anything changed in the last 6 hours, anything a running process
   names or has open (`lsof +D`, or lsof failing), a copy its review marked
   `KEPT`, and the newest all-green `out-<sha>-*` of each open PR's head,
   which `green-run.sh` reuses. Start with `--dry-run`. `tests/sol-copies-cases.sh`
   is its cases, run with `bash`.
-- `m5/checks/` the M5's check runner and its first-come queue, shared by
+- `m5/checks/` the check machine's runner and its first-come queue, shared by
   every project ([README](m5/README.md#m5-check-queue)).
   `tests/check-queue-cases.py` is its cases.
-- `seats/` the first kit's copy of `claude-seat-up` and what it reads. Seats
-  boot today with the `claude-subscription-switch` skill's launcher.
+- `seats/` the first kit's copy of `claude-seat-up` and what it reads.
   `tests/seat-up-cases.sh` is its cases, run with `bash`; they need `zsh`, as
   the script does.
 - `watch.mjs` also provides `landing-assessment` and `arrival-cap` passes,
@@ -98,10 +99,9 @@ Copy `watch.example.json` to the round's
 (the boot template uses `<ORCHESTRATION-ROOT>/.local/lanes`). Its
 `touches.busyFiles` is a configurable list of exact repository-relative paths
 that refuse dispatch even without a holding lane.
-The example seeds the four collision paths from the 11 October
-owner lessons (`2026-10-11-claude-single-owner/OWNER-LESSONS.md`, a private round record).
-`busyFilesSource` describes that provenance; it is not a file the checker
-loads. Change the list for the round's repository and current work.
+The example seeds four paths where lanes have collided before.
+`busyFilesSource` describes where the list came from; it is not a file the
+checker loads. Change the list for the round's repository and current work.
 
 Create `touches.json` under the directory passed as `--round`, initially
 `{"lanes": []}`, beside its `events.log` (an empty initial log is valid).
@@ -164,16 +164,14 @@ returns UNKNOWN because it may be incomplete. Failed reads never mean clear.
 Every CLI run prints a report; there is no deduplication state to hide a
 dispatch attempt. Cases: `node --test orchestration/tests/touches-cases.mjs`.
 
-## Archived: the first round kit
+## The first round kit
 
-**A record, reference only.** These ran the seven recorded rounds of 17 to 21
-September 2026 (`../README.md`, "Archived: the first kit"), and they live
-under [`archive/`](archive/). Their cases still run from `tests/` through the
-one entry point, and `archive/stages.mjs --check` still guards the root
-README's table.
+These scripts and templates ran the first, stage-by-stage version of Code
+Factory, and live under [`archive/`](archive/). Their cases still run from
+`tests/` through the one entry point, and `archive/stages.mjs --check` still
+guards the stage table at the end of the root README.
 
-- `archive/stages.json` the one source for the seven stages of `README.md` "Run a
-  round": actor, model, ceilings, brief template, and the condition that starts
+- `archive/stages.json` the one source for the seven stages in the root README's stage table: actor, model, ceilings, brief template, and the condition that starts
   and ends each one. A row's `reviews` is how many reviews of record the stage
   spends, and its `reviewsPerPullRequest` how many of those one pull request
   may draw.
