@@ -17,10 +17,13 @@ after it clears three checks:
 You don't need to be a programmer to drive it. Those three checks are what
 make the result solid, whoever is driving.
 
-Code Factory was shaped over about 4,000 agent sessions and more than 30,000
-commits across LaunchAstro's projects, since every one of them is built this
-way, not only this repository. It's battle-tested, and it can still be
-improved.
+Code Factory was shaped over about 4,000 agent sessions, more than 30,000
+commits and millions of lines of agent-written code across LaunchAstro's
+projects, since every one of them is built this way, not only this repository.
+It's battle-tested, and it can still be improved.
+
+We've found Code Factory works best with Claude Opus 5.5, particularly as the
+director, so that's the model we recommend.
 
 This repository holds the method (`docs/`), the skills agents load to run it
 (`skills/`), the scripts behind it (`orchestration/`) and a repository
@@ -174,9 +177,14 @@ from each and under which licence.
 
 ## Works with
 
-Two separate LaunchAstro repositories work alongside Code Factory. Neither is
-part of it, and a build runs without either.
+Three separate tools work alongside Code Factory. None of them is part of it.
+A build runs without Work Map or Seat Gauge, but herdr is on the
+[setup list](docs/SETUP.md).
 
+- [herdr](https://herdr.dev): an agent multiplexer that lives in your
+  terminal, installed with Homebrew (`brew install herdr`). Every pane, lane,
+  director and orchestrator runs in herdr workspaces, and the
+  [`herdr`](skills/herdr/SKILL.md) skill drives them.
 - [Work Map](https://github.com/LaunchAstro/work-map): a live local map of a
   project's work, read from GitHub. It places each ticket and pull request on
   a section by its `Section:` line, so a build's tickets and pull requests
