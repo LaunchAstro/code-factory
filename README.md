@@ -17,10 +17,10 @@ after it clears three checks:
 You don't need to be a programmer to drive it. Those three checks are what
 make the result solid, whoever is driving.
 
-Code Factory was shaped over about 4,000 agent sessions and more than 30,000
-commits across LaunchAstro's projects, since every one of them is built this
-way, not only this repository. It's battle-tested, and it can still be
-improved.
+Code Factory was shaped over about 4,000 agent sessions, more than 30,000
+commits and millions of lines of agent-written code across LaunchAstro's
+projects, since every one of them is built this way, not only this repository.
+It's battle-tested, and it can still be improved.
 
 We've found Code Factory works best with Claude Opus 5.5, particularly as the
 director, so that's the model we recommend.
